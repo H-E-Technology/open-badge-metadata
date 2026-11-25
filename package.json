@@ -1,0 +1,49 @@
+{
+  "name": "@h-e-technology/open-badge-metadata",
+  "version": "0.1.0",
+  "description": "Open Badges 3.0 に入れるメタデータ（マイクロクレデンシャル、修了証明書など）のルールと型の定義",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/H-E-Technology/open-badge-metadata.git"
+  },
+  "keywords": [
+    "open-badges",
+    "ob3",
+    "verifiable-credentials",
+    "micro-credentials"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*.json": "./dist/schemas/*.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/generate-json-schemas.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
