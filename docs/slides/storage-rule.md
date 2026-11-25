@@ -47,8 +47,8 @@ table td:first-child { font-weight:700; white-space:nowrap; }
 - ただしガイドライン 3.0 では、11 の記述子が `criteria.narrative` に 1 つの文章として入る。受け取った側は、学習時間やレベルを値として取り出せない
 - 記述子を構造化して Open Badges 3.0 に入れるルールは、国内外とも見つからなかった
 - 格納ルール案は、ガイドライン 3.0 の書き方を残したまま、同じ記述子を構造化して 1 か所に併記する
-- 構造化データの型、検証、文章を作る関数は、このパッケージにある。
-  JSON-LD コンテキストとバッジ全体の検証は、まだ無い
+- 型、検証、文章を作る関数、コンテキスト、JSON Schema は、このパッケージにある。
+  公開と、実物のバッジでの確認は、まだしていない
 - 決まっていないのは、語彙、公開先の URL、他のウォレットへの採用の働きかけである
 
 ---
@@ -447,12 +447,13 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 
 # ルールに従っていることの示し方
 
-発行する側は、OB 3.0 の仕様（付録 C.1）に従って次の 2 つを入れる
+発行する側は、コンテキストと JSON Schema の URL をバッジに入れる
 
 ```json
 "@context": [
   "https://www.w3.org/ns/credentials/v2",
   "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
+  "https://purl.imsglobal.org/spec/ob/v3p0/extensions.json",
   "https://example.org/…/microcredential/v1/context.json"
 ],
 "credentialSchema": [
@@ -462,8 +463,27 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 ]
 ```
 
+`extensions.json` は、`credentialSchema` の `type` を定義するコンテキスト
+
+---
+
+<style scoped>
+td:first-child code { white-space:nowrap; }
+</style>
+
+# 公開するファイル
+
+| ファイル | 役割 |
+| --- | --- |
+| `context.json` | JSON-LD コンテキスト。足す項目名は `microCredentialDescriptors` の 1 つだけ |
+| `schema.json` | バッジ全体に当てる JSON Schema。構造化データの形などを確かめる |
+| `test-vectors.json` | 構造化データと文章の組。ほかの言語で文章の生成を実装するときの照合用 |
+
 - 受け取る側は、`@context` にこのルールの URL があれば構造化データを読める
-- 版は URL に含める。`example.org` の URL は仮のもので、公開先は未決である
+- コンテキストと JSON Schema は、CORS の制限なしで公開する（OB 3.0 の仕様の要件）
+- 検証する側は `credentialSchema` の URL から JSON Schema を取得する。開けないと検証に失敗する
+- 公開した版のファイルは書き換えない。項目や語彙を変えるときは、版を上げて別の URL にする
+- 今の URL（`example.org`）は仮のもので、公開先は未決である
 
 ---
 
@@ -564,31 +584,49 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 
 ---
 
-# 検証で確かめることと、パッケージの現状
+# 検証で確かめること
+
+バッジ全体について、次の 5 つを確かめる。このパッケージの `validateBadge()` が行う
+
+1. 必須の記述子がそろっていて、項目一覧の形に合っている
+2. `criteria.narrative` が、構造化データから決まった書式で作った文章と一致する
+3. `achievementType` が `MicroCredential` で、`alignment` にフレームワークが入っている
+4. ガイドライン 3.0 が必須とする OB 3.0 本体の項目が入っている
+   発行機関の名前、発行日、学習者を識別する情報、名称、内容
+5. `@context` と `credentialSchema` が、決まりのとおりに入っている
+
+署名と、OB 3.0 本体の項目の細かい形は確かめない。そちらは OB 3.0 本体の JSON Schema と検証ツールが担う
+
+---
+
+# パッケージの現状
 
 <div class="cols">
-<div>
-
-### 検証で確かめること
-
-- 必須の記述子がそろっていて、項目一覧の形に合っている
-- `criteria.narrative` が、構造化データから決まった書式で作った文章と一致する
-- `achievementType` と `alignment` が、ガイドライン 3.0 どおりに入っている
-
-</div>
 <div>
 
 ### このパッケージにあるもの
 
 - 構造化データの型と検証
 - 構造化データから `criteria.narrative` を作る関数
-- 構造化データの JSON Schema
-
-### まだ無いもの
-
+- バッジ全体の検証
 - JSON-LD コンテキスト
 - バッジ全体に当てる JSON Schema
-- バッジ全体の検証（左の 2 つ目と 3 つ目）
+- 照合用のデータ
+- バッジ全体の記載例
+
+</div>
+<div>
+
+### 確かめてあること
+
+- コンテキストは、JSON-LD の処理系で展開と正規化（署名の前処理）ができる
+- 記載例は、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る
+
+### まだ確かめていないこと
+
+- 署名付きのバッジの発行
+- 他のウォレットでの取り込み・検証・表示
+- 1EdTech の検証ツール
 
 </div>
 </div>
@@ -649,14 +687,14 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 
 # 残っている作業
 
-1. **語彙と公開先の決定**
-   評価の方法、単位の制度名、レベルの枠組み名の語彙と、コンテキスト・JSON Schema の URL を決める
-2. **JSON-LD コンテキストと JSON Schema の作成**
-   コンテキストと、バッジ全体に当てる JSON Schema を作り、公開する
-3. **バッジ全体の検証**
-   文章と構造化データの一致、`achievementType` と `alignment` を確かめる検証を足す
-4. **実際のバッジでの確認**
-   発行と読み取りを試し、構造化データを値として取り出せることを確かめる
+1. **試すための置き場所の用意**
+   コンテキストと JSON Schema を、実際に開ける URL に置く。本番の URL とは別にする
+2. **実物のバッジでの確認**
+   署名付きで発行し、自社と他のウォレットで取り込み・検証・表示を試す。1EdTech の検証ツールにも通す
+3. **語彙と公開先の決定**
+   評価の方法、単位の制度名、レベルの枠組み名の語彙と、コンテキスト・JSON Schema の本番の URL を決める
+4. **公開**
+   コンテキスト、JSON Schema、仕様、パッケージを公開する
 5. **採用の働きかけ**
    国内の共同WG／機構と、1EdTech の拡張レジストリへの提案。するかどうかと時期は未決
 
