@@ -5,51 +5,33 @@ theme: default
 ---
 
 <style>
-/* 外部のテーマ CSS に頼らず、この 1 ファイルで見た目が決まるようにしている */
-section { background:#000000; color:#ffffff; font-size:20pt; padding:44px 60px 60px; align-content:start; justify-content:start;
+/* Marp 標準の default テーマに、文字の大きさと表・2 段組みの指定だけを足している */
+section { font-size:20pt; padding:44px 60px 56px; align-content:start; justify-content:start;
   font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif; }
-section::after { color:#6b6770; font-size:13pt; }
-h1 { color:#00c4e4; font-size:30pt; margin:0 0 .5em; padding:0; border:none; }
-h3 { font-size:19pt; color:#7fe3f5; margin:.2em 0 .35em; }
-p, li { color:#ffffff; font-size:20pt; line-height:1.55; }
+section::after { font-size:13pt; }
+h1 { font-size:30pt; margin:0 0 .55em; padding-bottom:.25em; border-bottom:2px solid #d0d7de; }
+h3 { font-size:19pt; margin:.2em 0 .35em; }
+p, li { font-size:20pt; line-height:1.55; }
 p { margin:.45em 0; }
 ul, ol { margin:.3em 0; padding-left:1.3em; }
 li { margin:.12em 0; }
-ul li::marker { color:#ffffff; }
-ol li::marker { color:#00c4e4; font-weight:700; }
-strong { color:#ffe04a; }
-li > strong:first-child { color:#ffffff; }
-section.top { display:grid; grid-template-rows:60% 40%; grid-template-columns:100%; justify-content:stretch; place-items:center; padding:0; text-align:center;
-  background:linear-gradient(to bottom, #000000 60%, #00c4e4 60%); }
-section.top h1 { color:#ffffff; font-size:44pt; line-height:1.4; margin:0; padding:0 48px; }
-section.top p { font-size:24pt; font-weight:700; line-height:1.7; margin:0; padding:0 48px; }
-section.crosshead { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
-section.crosshead h1 { color:#ffffff; font-size:40pt; margin:0; }
-.win { position:relative; border-radius:16px; margin:36px 0 24px; padding:20px 0 4px; overflow:hidden;
-  background:linear-gradient(165deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.045) 100%);
-  border:1px solid rgba(255,255,255,.14); box-shadow:0 18px 44px rgba(0,0,0,.45); }
-.win::before { content:""; position:absolute; left:0; right:0; top:0; height:3px;
-  background:linear-gradient(90deg, #00c4e4 0%, #7fe3f5 45%, rgba(127,227,245,0) 100%); }
-.win pre { background:transparent !important; border:none !important; border-radius:0; box-shadow:none; margin:0; padding:0 26px 14px; font-size:16pt; line-height:1.45; }
-.win pre code { font-size:100%; }
-.win pre code, .win pre code span { color:#f2f1f5 !important; background:transparent; }
-.win pre code .hljs-number { color:#ffe278 !important; }
-:not(pre) > code { background:transparent; padding:0; color:#a8e0e8; font-size:.92em; }
-table { display:table !important; width:100%; border-collapse:collapse !important; background:transparent !important; border:none !important; font-size:16pt; margin-top:24px; }
-table thead, table tbody, table tr { background:transparent !important; border:none !important; }
-table th { background:transparent !important; color:#a09aa4 !important; font-weight:600; font-size:14pt;
-  text-align:left; padding:0 .7em .5em; border:none !important; border-bottom:1px solid #3a3640 !important; }
-table td { background:transparent !important; color:#d2ced6 !important; padding:.45em .7em; line-height:1.45; vertical-align:top;
-  border:none !important; border-bottom:1px solid #221f28 !important; }
-table tr:last-child td { border-bottom:none !important; }
-table td:first-child { color:#ffffff !important; font-weight:700; white-space:nowrap; }
+section.lead { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+section.lead h1 { font-size:40pt; line-height:1.4; margin:0 0 .6em; padding:0; border:none; }
+section.lead p { font-size:22pt; line-height:1.7; margin:0; color:#57606a; }
+pre { font-size:16pt; line-height:1.45; margin:20px 0; padding:16px 22px; border-radius:8px; }
+pre code { font-size:100%; }
+:not(pre) > code { font-size:.92em; }
+table { display:table; width:100%; border-collapse:collapse; font-size:16pt; margin:18px 0 0; }
+table th { font-size:14pt; text-align:left; padding:.4em .7em; background:#f0f2f5; border:1px solid #d0d7de; }
+table td { padding:.42em .7em; line-height:1.45; vertical-align:top; background:#ffffff; border:1px solid #d0d7de; }
+table td:first-child { font-weight:700; white-space:nowrap; }
 .cols { display:grid; grid-template-columns:1fr 1fr; gap:0 56px; margin-top:8px; }
 .cols.wide-left { grid-template-columns:1.25fr 1fr; }
 .cols.wide-right { grid-template-columns:1fr 1.3fr; }
 .cols li, .cols p { font-size:18pt; }
 </style>
 
-<!-- _class: top -->
+<!-- _class: lead -->
 <!-- _paginate: false -->
 
 # オープンバッジに入れるメタデータの<br>格納ルール整備について
@@ -64,8 +46,10 @@ table td:first-child { color:#ffffff !important; font-weight:700; white-space:no
 - 入れる項目のルールは、国内に既にある。「マイクロクレデンシャルのフレームワーク 1.0」と「デジタル発行するためのガイドライン 3.0」である
 - ただしガイドライン 3.0 では、11 の記述子が `criteria.narrative` に 1 つの文章として入る。受け取った側は、学習時間やレベルを値として取り出せない
 - 記述子を構造化して Open Badges 3.0 に入れるルールは、国内外とも見つからなかった
-- 提案は、ガイドライン 3.0 の書き方を残したまま、同じ記述子を構造化して 1 か所に併記する格納ルールである
-- 残る課題は、語彙、公開先の URL、他のウォレットへの採用の働きかけである
+- 格納ルール案は、ガイドライン 3.0 の書き方を残したまま、同じ記述子を構造化して 1 か所に併記する
+- 構造化データの型、検証、文章を作る関数は、このパッケージにある。
+  JSON-LD コンテキストとバッジ全体の検証は、まだ無い
+- 決まっていないのは、語彙、公開先の URL、他のウォレットへの採用の働きかけである
 
 ---
 
@@ -75,11 +59,11 @@ table td:first-child { color:#ffffff !important; font-weight:700; white-space:no
 2. 先行事例の調査
 3. 国内ルールと OB 3.0 仕様の中身
 4. 格納ルール案
-5. 決めていないことと進め方
+5. 決めていないことと残っている作業
 
 ---
 
-<!-- _class: crosshead -->
+<!-- _class: lead -->
 <!-- _paginate: false -->
 
 # 1. 背景と課題
@@ -98,26 +82,9 @@ table td:first-child { color:#ffffff !important; font-weight:700; white-space:no
 
 ---
 
-# 検討の経緯
-
-1. **当初の構想**
-   EU 理事会勧告の必須 11 項目と修了証明書の項目を、独自の型として定義するパッケージを作り始めた
-2. **立てた問い**
-   そもそもこのパッケージは必要か。メタデータのルールを整備した事例は既に無いか
-3. **調査で分かったこと**
-   国内に OB 3.0 向けのルールが公開されていた。項目を独自に決める必要は薄い
-4. **絞り込んだ課題**
-   そのルールでは記述子が文章で入るため、他のウォレットが値として取り出せない
-5. **今の方針**
-   項目は既存のものを使い、構造化して格納するルールを整備する
-
----
-
 # 現状: 記述子は 1 つの文章として入る
 
 ガイドライン 3.0 の記載例では、`criteria.narrative` に次の文章が入る（抜粋）
-
-<div class="win">
 
 ```text
 学修成果 (Learning Outcomes):
@@ -134,8 +101,6 @@ table td:first-child { color:#ffffff !important; font-weight:700; white-space:no
 プロジェクト提出およびピアレビュー（Project submission and peer review）
 ```
 
-</div>
-
 ---
 
 # 課題: 表示はできるが、値を取り出せない
@@ -151,7 +116,7 @@ table td:first-child { color:#ffffff !important; font-weight:700; white-space:no
 
 ---
 
-<!-- _class: crosshead -->
+<!-- _class: lead -->
 <!-- _paginate: false -->
 
 # 2. 先行事例の調査
@@ -214,7 +179,7 @@ EU には構造化された形があるが、OB 3.0 に載せるためのルー�
 
 ### 実装面の先行例
 
-- OB 2.0 / 3.0 本体の TypeScript 型は、npm の `openbadges-types` として公開されている
+- OB 2.0 / 3.0 本体の TypeScript 型は、npm の `openbadges-types` にある
 - マイクロクレデンシャルの記述子を型、検証関数、JSON Schema にしたパッケージは見つからなかった
 
 ### 確認できなかったこと
@@ -225,7 +190,7 @@ EU には構造化された形があるが、OB 3.0 に載せるためのルー�
 
 ---
 
-<!-- _class: crosshead -->
+<!-- _class: lead -->
 <!-- _paginate: false -->
 
 # 3. 国内ルールと OB 3.0 仕様の中身
@@ -286,7 +251,7 @@ EU には構造化された形があるが、OB 3.0 に載せるためのルー�
 
 学習者、名称、発行機関、発行日、学修成果、学習量、評価の方法、授業の方法、質保証は、どちらでも必須である。
 
-今のコード（`src/profiles/microcredential.ts`）は EU の 11 項目に基づいているので、国内フレームワークとは一致しない。
+このパッケージの `microcredential` プロファイルは、国内フレームワークの記述子に基づく。EU の 11 項目は `eu-microcredential` プロファイルが持つ。
 
 ---
 
@@ -306,7 +271,7 @@ OB 3.0 本体の項目に入る記述子は 6 つである
 | 発行日 | `validFrom` | VC 1.1 の場合は `issuanceDate` |
 | 学習者を識別する情報 | `credentialSubject.identifier`<br>`credentialSubject.id` | 氏名、学生番号、DID など。仕様上は任意だが、実際の発行では必須とする |
 | マイクロクレデンシャル名称 | `credentialSubject.achievement.name` | |
-| 内容 | `credentialSubject.achievement.description` | ウォレットに表示する短い説明 |
+| 内容 | `credentialSubject.achievement.description` | ウォレットに表示する説明 |
 
 ---
 
@@ -317,7 +282,7 @@ OB 3.0 本体の項目に入る記述子は 6 つである
 
 ### 文章で入る記述子（11）
 
-`achievement` の下の `criteria.narrative` に、記述子名を見出しにした 1 つの文章として入れる
+`achievement` の下の `criteria.narrative` に、見出し付きの 1 つの文章として入れる
 
 - 学修成果、授業言語、授業の方法
 - 学習量、評価の方法、質保証
@@ -351,11 +316,12 @@ OB 3.0 本体の項目に入る記述子は 6 つである
 | C.2 語彙の拡張 | `achievementType` などの語彙に独自の値を足すときは、`ext:` で始める |
 | C.4 プロファイル | 特定の地域や分野に向けて仕様を絞り込んだものをプロファイルと呼ぶ。制約を足すだけで、元の仕様の制約を緩めてはならない |
 
-`Achievement`、`AchievementSubject`、`Alignment`、`Criteria` は、どれも拡張可能なクラスである。独自の項目を足すこと自体は、仕様に沿った使い方になる。
+`Achievement`、`AchievementSubject`、`Alignment`、`Criteria` は、どれも拡張可能なクラスである。
+独自の項目を足すこと自体は、仕様に沿った使い方になる。
 
 ---
 
-<!-- _class: crosshead -->
+<!-- _class: lead -->
 <!-- _paginate: false -->
 
 # 4. 格納ルール案
@@ -379,8 +345,6 @@ OB 3.0 本体の項目に入る記述子は 6 つである
 
 # バッジ全体の中での位置
 
-<div class="win">
-
 ```text
 OpenBadgeCredential
 ├─ @context                 このルールのコンテキストの URL を足す
@@ -395,8 +359,6 @@ OpenBadgeCredential
       └─ microCredentialDescriptors
                             このルールで足す構造化データ
 ```
-
-</div>
 
 このルールを知らないウォレットも、これまでどおり文章を表示できる。
 
@@ -420,9 +382,9 @@ OpenBadgeCredential
 ---
 
 <style scoped>
-th:nth-child(1), td:nth-child(1) { width:17%; }
-th:nth-child(2), td:nth-child(2) { width:19%; }
-th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
+th:nth-child(1), td:nth-child(1) { width:14%; }
+th:nth-child(2), td:nth-child(2) { width:17%; }
+th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 </style>
 
 # 項目一覧（1）
@@ -431,17 +393,17 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 | --- | --- | --- | --- |
 | 学修成果 | `learningOutcomes` | 必須 | 1 件以上の配列。要素は `description`（テキスト、必須）と `alignment`（スキル標準などへの対応、任意） |
 | 授業言語 | `languages` | 選択 | 言語タグの配列。例は `["ja"]` |
-| 授業の方法 | `participation` | 必須 | `mode` は必須で、`onsite`、`online`、`hybrid` のどれか。`timing` は任意で、`synchronous`、`asynchronous`、`mixed` のどれか |
+| 授業の方法 | `participation` | 必須 | `mode`（必須）は `onsite`、`online`、`hybrid`。`timing`（任意）は `synchronous`、`asynchronous`、`mixed` |
 | 学習量 | `learnerEffort` | 必須 | `totalHours` は必須で、10 以上の数値。`contactHours`（授業時間）は任意の数値 |
-| 評価の方法 | `assessments` | 必須 | 1 件以上の配列。要素は `method`（必須。語彙は未決）と `description`（任意） |
-| 質保証 | `qualityAssurance` | 必須 | `internal` は必須で、内部質保証の基準の `name` と任意の `url`。`external` は任意の配列で、第三者による認証の `name` と任意の `url` |
+| 評価の方法 | `assessments` | 必須 | 1 件以上の配列。要素は `method`（必須。語彙は仮の 9 種）と `description`（任意） |
+| 質保証 | `qualityAssurance` | 必須 | `internal`（必須。内部質保証）と `external`（任意の配列。第三者による認証）。どちらも `name` と任意の `url` を持つ |
 
 ---
 
 <style scoped>
-th:nth-child(1), td:nth-child(1) { width:17%; }
-th:nth-child(2), td:nth-child(2) { width:19%; }
-th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
+th:nth-child(1), td:nth-child(1) { width:14%; }
+th:nth-child(2), td:nth-child(2) { width:17%; }
+th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 </style>
 
 # 項目一覧（2）
@@ -487,8 +449,6 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 
 発行する側は、OB 3.0 の仕様（付録 C.1）に従って次の 2 つを入れる
 
-<div class="win">
-
 ```json
 "@context": [
   "https://www.w3.org/ns/credentials/v2",
@@ -501,8 +461,6 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
     "type": "1EdTechJsonSchemaValidator2019" }
 ]
 ```
-
-</div>
 
 - 受け取る側は、`@context` にこのルールの URL があれば構造化データを読める
 - 版は URL に含める。`example.org` の URL は仮のもので、公開先は未決である
@@ -522,7 +480,7 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 - 配列は箇条書きにする
 - 値の無い選択記述子は、見出しごと省く
 
-区分や数値を本文にするときの言い回しは、まだ決めていない
+区分や数値を本文にするときの言い回しは、仮のものである
 
 </div>
 <div>
@@ -550,8 +508,6 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 
 `achievement` の中に、文章と構造化データを並べて入れる
 
-<div class="win">
-
 ```json
 "achievement": {
   "id": "https://example.com/achievements/data-science-2025",
@@ -567,15 +523,11 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 }
 ```
 
-</div>
-
 ---
 
 # 記載例（2）
 
 `microCredentialDescriptors` の前半。学修成果から評価の方法まで
-
-<div class="win">
 
 ```json
 "microCredentialDescriptors": {
@@ -591,15 +543,11 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
   （次のスライドへ続く）
 ```
 
-</div>
-
 ---
 
 # 記載例（3）
 
 `microCredentialDescriptors` の後半。質保証から前提条件まで
-
-<div class="win">
 
 ```json
   "qualityAssurance": { "internal": { "name": { "ja": "質保証委員会による審査" } } },
@@ -612,13 +560,11 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 }
 ```
 
-</div>
-
 「90 時間」「オンライン」「UCTS 2 単位」が、どれも値として取り出せる形になる。
 
 ---
 
-# 検証で確かめることと、パッケージの役割
+# 検証で確かめることと、パッケージの現状
 
 <div class="cols">
 <div>
@@ -627,30 +573,32 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 
 - 必須の記述子がそろっていて、項目一覧の形に合っている
 - `criteria.narrative` が、構造化データから決まった書式で作った文章と一致する
-- `achievementType` が `MicroCredential` で、`alignment` にフレームワークが入っている
+- `achievementType` と `alignment` が、ガイドライン 3.0 どおりに入っている
 
 </div>
 <div>
 
-### このパッケージが持つもの
+### このパッケージにあるもの
 
-- 構造化データの型
-- 検証関数
-- JSON Schema
-- JSON-LD コンテキスト
+- 構造化データの型と検証
 - 構造化データから `criteria.narrative` を作る関数
+- 構造化データの JSON Schema
 
-今のコードは見直し前のもので、ルール案に合意してから書き直す
+### まだ無いもの
+
+- JSON-LD コンテキスト
+- バッジ全体に当てる JSON Schema
+- バッジ全体の検証（左の 2 つ目と 3 つ目）
 
 </div>
 </div>
 
 ---
 
-<!-- _class: crosshead -->
+<!-- _class: lead -->
 <!-- _paginate: false -->
 
-# 5. 決めていないことと進め方
+# 5. 決めていないことと残っている作業
 
 ---
 
@@ -677,13 +625,13 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 
 | 論点 | 内容 |
 | --- | --- |
-| 評価の方法の語彙 | 今のコードの 9 種（`exam`、`assignment`、`project` など）を使うか、ELM の統制語彙などに寄せるか |
+| 評価の方法の語彙 | 仮に 9 種（`exam`、`assignment`、`project` など）を使っている。ELM の統制語彙などに寄せるか |
 | 単位やポイントの制度名 | 大学設置基準の単位、UCTS、ECTS、PDU などを、どう書き表すか |
 | レベルの枠組み名 | 日本には全国資格枠組みが無い。「学士」「修士」などを、どの枠組みの値として書くか |
 | 多言語のテキスト | 日本語を必須にするか、どれか 1 言語あればよいとするか。OB 3.0 本体の文字列項目に入る名称と発行機関で、英語の併記をどう書くか |
 | コンテキストと JSON Schema の公開先 | どのドメインに置くか。版を URL にどう含めるか。URL は一度使い始めると変えられない |
 
-語彙と公開先は、決めないと実装に進めない。
+語彙と公開先には、仮の値が入っている。
 
 ---
 
@@ -692,25 +640,25 @@ th:nth-child(3), td:nth-child(3) { width:8%; white-space:nowrap; }
 | 論点 | 内容 |
 | --- | --- |
 | 文章だけのバッジを読むか | 他の発行者がガイドライン 3.0 だけに沿って出したバッジは、文章しか持たない。見出しを手がかりに分解して読む機能を持つかどうか |
-| EU 理事会勧告の扱い | 今のコードは EU の 11 項目を持つ。EU 向けの発行が要るなら別のプロファイルとして残し、要らないなら消す |
-| 修了証明書の扱い | 国内フレームワークは、評価を伴わない修了・参加の証明を対象外としている。今の項目は叩き台で、該当する既存のルールは見つかっていない |
+| EU 理事会勧告の扱い | EU の 11 項目を持つプロファイル（`eu-microcredential`）は、格納ルールの形になっていない。EU 向けの発行が要るなら格納ルールの形に直し、要らないなら消す |
+| 修了証明書の扱い | 国内フレームワークは、評価を伴わない修了・参加の証明を対象外としている。修了証明書のプロファイルは項目が確定しておらず、該当する既存のルールも見つかっていない |
 | 自社の LMS との分担 | バッジの署名とコンテキストを扱う LMS 側のパッケージと、どちらが何を持つか |
 | パッケージの公開先とライセンス | npm か GitHub Packages か。ライセンスは仮に MIT としている |
 
 ---
 
-# 進め方
+# 残っている作業
 
-1. **格納ルール案の合意**
-   置き場所と、項目名・形を確定する
-2. **語彙と公開先の決定**
+1. **語彙と公開先の決定**
    評価の方法、単位の制度名、レベルの枠組み名の語彙と、コンテキスト・JSON Schema の URL を決める
-3. **コードの書き直し**
-   型、検証関数、JSON Schema、JSON-LD コンテキスト、文章を作る関数を実装する
-4. **自社での発行と読み取りの確認**
-   実際のバッジで、構造化データの取り出しと文章の一致を確かめる
+2. **JSON-LD コンテキストと JSON Schema の作成**
+   コンテキストと、バッジ全体に当てる JSON Schema を作り、公開する
+3. **バッジ全体の検証**
+   文章と構造化データの一致、`achievementType` と `alignment` を確かめる検証を足す
+4. **実際のバッジでの確認**
+   発行と読み取りを試し、構造化データを値として取り出せることを確かめる
 5. **採用の働きかけ**
-   国内の共同WG／機構と、1EdTech の拡張レジストリへ提案する。時期は未決
+   国内の共同WG／機構と、1EdTech の拡張レジストリへの提案。するかどうかと時期は未決
 
 ---
 
