@@ -147,16 +147,38 @@ export function validateBadge(input: unknown): ValidationResult<MicroCredentialB
     : { success: false, issues: result.error.issues };
 }
 
+/** zod のスキーマから、$schema を除いた JSON Schema を作る（ほかの JSON Schema に埋め込む用） */
+function embeddedJsonSchema(schema: z.ZodType): Record<string, unknown> {
+  const { $schema: _, ...rest } = z.toJSONSchema(schema, { target: "draft-2020-12" });
+  return rest;
+}
+
+/** JSON Schema で、空でない文字列 */
+const NON_EMPTY_STRING = { type: "string", minLength: 1 } as const;
+
+/** JSON Schema で、配列にこの値を含む */
+const containsValue = (value: string) => ({ contains: { const: value } });
+
 /**
  * バッジの credentialSchema に入れる JSON Schema（Draft 2019-09）。
  *
- * TypeScript 以外からも使えるよう、形だけを確かめる。
- * 文章と構造化データの一致は JSON Schema では書けないので、含まない。
+ * TypeScript 以外からも使えるよう、validateBadge() が確かめる決まりを JSON Schema で書く。
+ * 同じ入力に validateBadge() と同じ結果を返す。ただし、次は JSON Schema では書けないので含まない。
+ * - criteria.narrative が、構造化データから作った文章と一致すること
+ * - URL の書式（format: "uri" で示す。確かめるかどうかは検証ツールによる）
  */
 export function toCredentialJsonSchema(): Record<string, unknown> {
-  const { $schema: _, ...descriptors } = z.toJSONSchema(MicroCredentialDescriptors, {
-    target: "draft-2020-12",
-  });
+  const credentialSchemaEntry = {
+    type: "object",
+    required: ["id", "type"],
+    properties: { id: NON_EMPTY_STRING, type: NON_EMPTY_STRING },
+  };
+  const ruleCredentialSchema = {
+    type: "object",
+    required: ["id", "type"],
+    properties: { id: { const: CREDENTIAL_SCHEMA_URL }, type: { const: SCHEMA_VALIDATOR_TYPE } },
+  };
+
   return {
     $schema: "https://json-schema.org/draft/2019-09/schema",
     $id: CREDENTIAL_SCHEMA_URL,
@@ -164,31 +186,79 @@ export function toCredentialJsonSchema(): Record<string, unknown> {
     description:
       "Open Badges 3.0 のバッジに、マイクロクレデンシャルの記述子を構造化して入れるときの形",
     type: "object",
-    required: ["@context", "credentialSubject"],
+    required: ["@context", "type", "issuer", "validFrom", "credentialSchema", "credentialSubject"],
     properties: {
       "@context": {
         type: "array",
+        minItems: 1,
+        // 1 番目は VC 2.0、2 番目は OB 3.0 のコンテキスト（Draft 2019-09 の、配列で書く items）
+        items: [
+          { const: VC_CONTEXT_URL },
+          { type: "string", pattern: OB_CONTEXT_URL_PATTERN.source },
+        ],
+        allOf: [containsValue(OB_EXTENSIONS_CONTEXT_URL), containsValue(CONTEXT_URL)],
+      },
+      type: {
+        type: "array",
+        items: { type: "string" },
         allOf: [
-          { contains: { const: OB_EXTENSIONS_CONTEXT_URL } },
-          { contains: { const: CONTEXT_URL } },
+          containsValue("VerifiableCredential"),
+          {
+            anyOf: [containsValue("OpenBadgeCredential"), containsValue("AchievementCredential")],
+          },
+        ],
+      },
+      issuer: {
+        type: "object",
+        required: ["id", "name"],
+        properties: { id: NON_EMPTY_STRING, name: NON_EMPTY_STRING },
+      },
+      validFrom: NON_EMPTY_STRING,
+      credentialSchema: {
+        anyOf: [
+          { allOf: [credentialSchemaEntry, ruleCredentialSchema] },
+          { type: "array", items: credentialSchemaEntry, contains: ruleCredentialSchema },
         ],
       },
       credentialSubject: {
         type: "object",
         required: ["achievement"],
+        // 学習者を識別する情報として、id か identifier のどちらか
+        anyOf: [{ required: ["id"] }, { required: ["identifier"] }],
         properties: {
+          id: NON_EMPTY_STRING,
+          identifier: { type: "array", minItems: 1 },
           achievement: {
             type: "object",
-            required: ["achievementType", "alignment", "criteria", "microCredentialDescriptors"],
+            required: [
+              "name",
+              "description",
+              "achievementType",
+              "alignment",
+              "criteria",
+              "microCredentialDescriptors",
+            ],
             properties: {
+              name: NON_EMPTY_STRING,
+              description: NON_EMPTY_STRING,
               achievementType: { const: ACHIEVEMENT_TYPE },
-              alignment: { type: "array", minItems: 1 },
+              alignment: {
+                type: "array",
+                minItems: 1,
+                items: embeddedJsonSchema(Alignment),
+                // フレームワーク 1.0 を入れる
+                contains: {
+                  type: "object",
+                  required: ["targetUrl"],
+                  properties: { targetUrl: { enum: [...FRAMEWORK_URLS] } },
+                },
+              },
               criteria: {
                 type: "object",
                 required: ["narrative"],
-                properties: { narrative: { type: "string", minLength: 1 } },
+                properties: { narrative: NON_EMPTY_STRING },
               },
-              microCredentialDescriptors: descriptors,
+              microCredentialDescriptors: embeddedJsonSchema(MicroCredentialDescriptors),
             },
           },
         },

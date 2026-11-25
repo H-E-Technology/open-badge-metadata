@@ -17,11 +17,18 @@ import { defineProfile, type ProfileMetadata } from "../profile.ts";
 /** 型を示す値。JSON-LD のコンテキストで、この中の項目名を定義する手がかりになる */
 export const DESCRIPTORS_TYPE = "MicroCredentialDescriptors";
 
+/*
+ * refine で書いた決まりは z.toJSONSchema() の出力に入らない。
+ * 配信する JSON Schema が validateMetadata() / validateBadge() と同じ結果になるよう、
+ * refine のすぐ後に、同じ決まりを JSON Schema の書き方で .meta() に添える。
+ */
+
 /** OB 3.0 の Alignment。拡張可能なクラスなので、ここに無い項目も通す */
 export const Alignment = z.looseObject({
-  type: z.array(z.string()).refine((t) => t.includes("Alignment"), {
-    message: "type に Alignment を含めてください",
-  }),
+  type: z
+    .array(z.string())
+    .refine((t) => t.includes("Alignment"), { message: "type に Alignment を含めてください" })
+    .meta({ contains: { const: "Alignment" } }),
   targetName: z.string().min(1),
   targetUrl: z.url(),
   targetCode: z.string().min(1).optional(),
@@ -44,14 +51,24 @@ const NamedReference = z.strictObject({
   url: z.url().optional(),
 });
 
+/** JSON Schema で「kind が none の認定」を表す */
+const NONE_RECOGNITION = {
+  type: "object",
+  required: ["kind"],
+  properties: { kind: { const: "none" } },
+};
+
 /**
  * 項目名の打ち間違いを見逃さないよう、決まりに無い項目は通さない（strictObject）。
  * 選択の配列は、値が無ければ項目ごと省く。空の配列は通さない。
  */
 export const MicroCredentialDescriptors = z.strictObject({
-  type: z.array(z.string()).refine((t) => t.includes(DESCRIPTORS_TYPE), {
-    message: `type に ${DESCRIPTORS_TYPE} を含めてください`,
-  }),
+  type: z
+    .array(z.string())
+    .refine((t) => t.includes(DESCRIPTORS_TYPE), {
+      message: `type に ${DESCRIPTORS_TYPE} を含めてください`,
+    })
+    .meta({ contains: { const: DESCRIPTORS_TYPE } }),
 
   /** 学修成果（必須） */
   learningOutcomes: z
@@ -134,7 +151,23 @@ export const MicroCredentialDescriptors = z.strictObject({
       (items) =>
         items.every((r) => r.kind !== "none" || (r.scheme === undefined && r.amount === undefined)),
       { message: 'kind が "none" のときは、scheme と amount を書かないでください' },
-    ),
+    )
+    .meta({
+      allOf: [
+        { if: { contains: NONE_RECOGNITION }, then: { maxItems: 1 } },
+        {
+          not: {
+            contains: {
+              ...NONE_RECOGNITION,
+              anyOf: [
+                { type: "object", required: ["scheme"] },
+                { type: "object", required: ["amount"] },
+              ],
+            },
+          },
+        },
+      ],
+    }),
 
   /** （受講）前提条件（選択） */
   prerequisites: z

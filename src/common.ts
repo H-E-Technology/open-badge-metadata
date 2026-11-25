@@ -12,6 +12,8 @@ export const LanguageTag = z
 export const LocalizedText = z
   .record(LanguageTag, z.string().min(1))
   .refine((v) => Object.keys(v).length > 0, { message: "最低 1 言語は必要です" })
+  // refine は JSON Schema に出ないので、同じ決まりを JSON Schema の書き方で足す
+  .meta({ minProperties: 1 })
   .describe("言語タグをキーにしたテキスト");
 export type LocalizedText = z.infer<typeof LocalizedText>;
 

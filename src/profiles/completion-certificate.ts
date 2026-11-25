@@ -23,7 +23,9 @@ export const CompletionCertificateMetadata = z.object({
     })
     .refine((p) => p.startDate <= p.endDate, {
       message: "startDate は endDate 以前にしてください",
-    }),
+    })
+    // 日付の前後は JSON Schema では書けないので、説明に残す
+    .describe("受講期間。startDate は endDate 以前（JSON Schema では確かめない）"),
   /** 修了日 */
   completedOn: IsoDate,
   /** 総学習時間 */
