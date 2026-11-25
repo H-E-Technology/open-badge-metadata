@@ -24,6 +24,24 @@ export const CountryCode = z
 /** 日付（YYYY-MM-DD） */
 export const IsoDate = z.iso.date().describe("YYYY-MM-DD 形式の日付");
 
+/**
+ * URL に使える形。スキームは http と https だけ（小文字）。
+ * 空白、制御文字、`<`、`>`、`\` は使えない。
+ * criteria.narrative には `<URL>` の形で入れるので、この形なら Markdown の中で URL が途中で切れない。
+ */
+export const HTTP_URL_PATTERN = /^https?:\/\/[^\s\x00-\x1f\x7f<>\\]+$/;
+
+/**
+ * http か https の URL。
+ * z.url() は前後の空白などを取り除いた値を返すので使わず、値は書き換えずに判定する。
+ */
+export const HttpUrl = z
+  .string()
+  .regex(HTTP_URL_PATTERN, "http か https の URL で書いてください（空白、< > \\ は使えません）")
+  .refine((v) => URL.canParse(v), { message: "URL として読めません" })
+  .meta({ format: "uri" })
+  .describe("http か https の URL");
+
 /** 組織 */
 export const Organization = z.object({
   name: LocalizedText,

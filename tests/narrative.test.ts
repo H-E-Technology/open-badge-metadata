@@ -104,7 +104,7 @@ describe("toCriteriaNarrative", () => {
     };
 
     expect(toCriteriaNarrative(detailed)).toBe(`学修成果 (Learning Outcomes):
-- 統計手法を適用する（Apply statistical methods） [ITSS+ データサイエンス領域](https://example.org/skills/ds-1)
+- 統計手法を適用する（Apply statistical methods） [ITSS+ データサイエンス領域](<https://example.org/skills/ds-1>)
 
 授業言語 (Language):
 日本語（Japanese）、英語（English）、fr
@@ -120,15 +120,61 @@ describe("toCriteriaNarrative", () => {
 - プロジェクト・成果物（Project）: 最終成果物を提出する
 
 質保証 (Type of quality assurance):
-- 内部質保証（Internal）: 質保証委員会による審査 https://example.ac.jp/qa
+- 内部質保証（Internal）: 質保証委員会による審査 <https://example.ac.jp/qa>
 - 外部質保証（External）: サンプル認証機構の認証
 
 レベル (Level):
-- EQF: 6 https://example.org/eqf/6
+- EQF: 6 <https://example.org/eqf/6>
 
 単位/その他認定 (Credit/Other recognition):
 - 単位（Credit）: UCTS 2、卒業要件に算入できる
 - その他の認定（Other recognition）: 業界団体による認定`);
+  });
+});
+
+describe("Markdown のエスケープ", () => {
+  const outcomeLine = (targetName: string, targetUrl: string): string => {
+    const narrative = toCriteriaNarrative({
+      ...minimalDescriptors,
+      learningOutcomes: [
+        {
+          description: { ja: "表形式のデータを集計できる" },
+          alignment: { type: ["Alignment"], targetName, targetUrl },
+        },
+      ],
+    });
+    return narrative.split("\n")[1] ?? "";
+  };
+
+  it("リンクの文字の ] と [ に \\ を付け、URL を <> で囲む", () => {
+    expect(outcomeLine("x](https://evil.example/)", "https://example.org/a")).toBe(
+      "- 表形式のデータを集計できる [x\\](https://evil.example/)](<https://example.org/a>)",
+    );
+    expect(outcomeLine("[第2版]", "https://example.org/a")).toBe(
+      "- 表形式のデータを集計できる [\\[第2版\\]](<https://example.org/a>)",
+    );
+  });
+
+  it("リンクの文字の \\ にも \\ を付け、エスケープを打ち消せないようにする", () => {
+    expect(outcomeLine("a\\]b", "https://example.org/a")).toBe(
+      "- 表形式のデータを集計できる [a\\\\\\]b](<https://example.org/a>)",
+    );
+  });
+
+  it("URL の括弧は、<> の中にそのまま入れる", () => {
+    expect(outcomeLine("x", "https://example.org/a)(b")).toBe(
+      "- 表形式のデータを集計できる [x](<https://example.org/a)(b>)",
+    );
+  });
+
+  it("名前の後ろに続ける URL も <> で囲む", () => {
+    const narrative = toCriteriaNarrative({
+      ...minimalDescriptors,
+      qualityAssurance: {
+        internal: { name: { ja: "審査" }, url: "https://example.ac.jp/[x](y)" },
+      },
+    });
+    expect(narrative).toContain("- 内部質保証（Internal）: 審査 <https://example.ac.jp/[x](y)>");
   });
 });
 

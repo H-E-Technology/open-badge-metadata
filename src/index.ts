@@ -9,6 +9,8 @@ export {
 export {
   AssessmentMethod,
   CountryCode,
+  HTTP_URL_PATTERN,
+  HttpUrl,
   IsoDate,
   LanguageTag,
   LocalizedText,
