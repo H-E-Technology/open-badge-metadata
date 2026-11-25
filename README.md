@@ -53,4 +53,10 @@ pnpm test
 pnpm build   # dist/ に JS・型・JSON Schema を出す
 ```
 
-まだ決めていないことは [docs/open-questions.md](docs/open-questions.md) にまとめています。
+## 方針の見直しについて
+
+先行事例を調べた結果、方針を見直しています。今のコードは見直し前のもので、これから書き直します。
+
+- [docs/prior-art.md](docs/prior-art.md): 先行事例の調査
+- [docs/storage-rule.md](docs/storage-rule.md): マイクロクレデンシャル記述子の格納ルール（案）
+- [docs/open-questions.md](docs/open-questions.md): まだ決めていないこと
