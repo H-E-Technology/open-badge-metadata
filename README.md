@@ -16,11 +16,11 @@ Open Badges 3.0 のバッジに入れるマイクロクレデンシャルの記�
 | バッジの `credentialSchema` に入れる | JSON Schema（`dist/rule/microcredential/v1/schema.json`） |
 | TypeScript 以外（Flutter など）で実装する | 上の JSON Schema と、照合用のデータ（`test-vectors.json`） |
 
-語彙、本文の言い回し、公開先の URL は仮のものです。コンテキストと JSON Schema は、まだ公開していません。
+語彙と本文の言い回しは仮のものです。コンテキストと JSON Schema は、試すための置き場所（`https://h-e-technology.github.io/open-badge-metadata/draft/microcredential/v1/`）で配信しています。ここのファイルは書き換えることがあり、本番の URL は未決です。
 
 ## 使い方
 
-公開先は未決で、まだ公開していません。
+パッケージの公開先は未決で、まだ公開していません。
 
 ```bash
 pnpm add @h-e-technology/open-badge-metadata

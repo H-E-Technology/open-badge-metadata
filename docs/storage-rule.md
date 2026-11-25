@@ -1,6 +1,6 @@
 # マイクロクレデンシャル記述子の格納ルール（案 0.1）
 
-状態: 案。語彙、本文の言い回し、公開先の URL は仮のものである。このルールの型、検証、文章を作る関数、JSON-LD コンテキスト、JSON Schema は、このパッケージにある。コンテキストと JSON Schema は、まだ公開していない。決めていない点は [open-questions.md](open-questions.md) にまとめている。
+状態: 案。語彙、本文の言い回し、公開先の URL は仮のものである。このルールの型、検証、文章を作る関数、JSON-LD コンテキスト、JSON Schema は、このパッケージにある。コンテキストと JSON Schema は、試すための置き場所で配信している。決めていない点は [open-questions.md](open-questions.md) にまとめている。
 
 ## 1. 解きたい問題
 
@@ -100,7 +100,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 - OB 3.0 の仕様では、検証する側が `credentialSchema` の URL から JSON Schema を取得し、バッジが合っているかを確かめる。URL が開けないと検証に失敗する。
 - 公開した版のファイルは書き換えない。項目や語彙を変えるときは、版を上げて別の URL にする。
 
-今の URL は、試すための置き場所（GitHub Pages の `draft/` の下）を指している。ここに置いたファイルは書き換えることがある。本番の URL は未決である。
+今の URL は、試すための置き場所（GitHub Pages の `draft/` の下）を指している。3 つのファイルは `https://h-e-technology.github.io/open-badge-metadata/draft/microcredential/v1/` の下で配信している。ここに置いたファイルは書き換えることがある。本番の URL は未決である。
 
 ## 6. `criteria.narrative` の作り方
 
