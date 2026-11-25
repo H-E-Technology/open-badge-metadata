@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   NARRATIVE_HEADINGS,
+  microCredentialProfile,
+  narrativeTestVectors,
   renderText,
   toCriteriaNarrative,
+  validateMetadata,
   type MicroCredentialDescriptors,
 } from "../src/index.ts";
 import { minimalDescriptors, validDescriptors, validDescriptorsNarrative } from "./fixtures.ts";
@@ -15,6 +18,15 @@ describe("toCriteriaNarrative", () => {
   it("記載例の構造化データから、決まった文章を作る", () => {
     expect(toCriteriaNarrative(validDescriptors)).toBe(validDescriptorsNarrative);
   });
+
+  it.each(narrativeTestVectors.map((v) => [v.name, v] as const))(
+    "照合用データ「%s」の構造化データは検証を通り、期待どおりの文章になる",
+    (_, vector) => {
+      const result = validateMetadata(microCredentialProfile, vector.descriptors);
+      expect(result.success ? [] : result.issues).toEqual([]);
+      expect(toCriteriaNarrative(vector.descriptors)).toBe(vector.narrative);
+    },
+  );
 
   it("同じ入力からは同じ文章を作る", () => {
     expect(toCriteriaNarrative(validDescriptors)).toBe(toCriteriaNarrative(validDescriptors));

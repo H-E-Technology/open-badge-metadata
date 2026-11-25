@@ -9,11 +9,14 @@ Open Badges 3.0 のバッジに入れるマイクロクレデンシャルの記�
 | 使い道 | 提供するもの |
 | --- | --- |
 | TypeScript から使う | 型（`MicroCredentialDescriptors`） |
-| 発行前・受け取り時に確かめる | `validateMetadata()` |
+| 構造化データを確かめる | `validateMetadata()` |
 | ガイドライン 3.0 どおりの文章を作る | `toCriteriaNarrative()` |
-| TypeScript 以外（Flutter など）から使う | JSON Schema（`dist/schemas/<id>.json`） |
+| バッジ全体を確かめる | `validateBadge()` |
+| バッジの `@context` に入れる | JSON-LD コンテキスト（`dist/rule/microcredential/v1/context.json`） |
+| バッジの `credentialSchema` に入れる | JSON Schema（`dist/rule/microcredential/v1/schema.json`） |
+| TypeScript 以外（Flutter など）で実装する | 上の JSON Schema と、照合用のデータ（`test-vectors.json`） |
 
-語彙、本文の言い回し、公開先の URL は仮のものです。JSON-LD コンテキストとバッジ全体の検証は、まだありません。
+語彙、本文の言い回し、公開先の URL は仮のものです。コンテキストと JSON Schema は、まだ公開していません。
 
 ## 使い方
 
@@ -40,6 +43,15 @@ if (!result.success) {
     criteria: { narrative: toCriteriaNarrative(result.data) },
   };
 }
+```
+
+組み立てたバッジや受け取ったバッジは、`validateBadge()` で全体を確かめられます。文章と構造化データが食い違っていれば落とします。バッジ全体の例は [examples/microcredential-badge.json](examples/microcredential-badge.json) にあります。
+
+```ts
+import { validateBadge } from "@h-e-technology/open-badge-metadata";
+
+const checked = validateBadge(badge);
+if (!checked.success) console.error(checked.issues);
 ```
 
 JSON Schema はパッケージ内のファイルとして読めます。

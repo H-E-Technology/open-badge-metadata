@@ -1,6 +1,6 @@
 # マイクロクレデンシャル記述子の格納ルール（案 0.1）
 
-状態: 案。語彙、本文の言い回し、公開先の URL は仮のものである。構造化データの型、検証、文章を作る関数はこのパッケージにあり、JSON-LD コンテキストとバッジ全体の検証はまだ無い。決めていない点は [open-questions.md](open-questions.md) にまとめている。
+状態: 案。語彙、本文の言い回し、公開先の URL は仮のものである。このルールの型、検証、文章を作る関数、JSON-LD コンテキスト、JSON Schema は、このパッケージにある。コンテキストと JSON Schema は、まだ公開していない。決めていない点は [open-questions.md](open-questions.md) にまとめている。
 
 ## 1. 解きたい問題
 
@@ -74,14 +74,33 @@ OB 3.0 本体にも近い項目があるが、次の理由で、上の記述子�
 
 ## 5. このルールに従っていることの示し方
 
-OB 3.0 の仕様（付録 C.1）に従い、発行する側は次の 2 つを入れる。
+OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 
 - `@context` に、このルールの JSON-LD コンテキストの URL を足す。
-- `credentialSchema` に、このルールの JSON Schema の URL を足す。
+- `credentialSchema` に、このルールの JSON Schema の URL を足す。`type` は、OB 3.0 の仕様が定める `1EdTechJsonSchemaValidator2019` にする。
+- `@context` に、OB 3.0 の拡張用コンテキスト `https://purl.imsglobal.org/spec/ob/v3p0/extensions.json` も足す。`1EdTechJsonSchemaValidator2019` という値はこのコンテキストで定義されていて、無いと署名の前処理（JSON-LD としての処理）で失敗する。
+
+`@context` の並びは、VC 2.0、OB 3.0、OB 3.0 の拡張用、このルール、の順にする。
 
 受け取る側は、`@context` にこのルールの URL があるかどうかで、構造化データを読めるバッジかを判断できる。版は URL に含める。
 
-コンテキストと JSON Schema は、CORS の制限なしで公開しなければならない。公開先の URL は未決である。
+### 公開するファイル
+
+| ファイル | 役割 |
+| --- | --- |
+| `context.json` | JSON-LD コンテキスト。足す項目名は `microCredentialDescriptors` の 1 つだけで、その中の項目名は、この項目の中だけで効く定義にしている |
+| `schema.json` | バッジ全体に当てる JSON Schema（Draft 2019-09）。構造化データの形と、`achievementType` などを確かめる |
+| `test-vectors.json` | 構造化データと、そこから作られる文章の組。TypeScript 以外で文章の生成を実装するときに、結果を突き合わせる |
+
+ビルドすると `dist/rule/microcredential/v1/` にできる。公開先の URL と同じ並びにしている。
+
+公開するときの決まり:
+
+- コンテキストと JSON Schema は、CORS の制限なしで公開する（OB 3.0 の仕様の要件）。
+- OB 3.0 の仕様では、検証する側が `credentialSchema` の URL から JSON Schema を取得し、バッジが合っているかを確かめる。URL が開けないと検証に失敗するので、仮の URL のままのバッジは他のウォレットで検証できない。
+- 公開した版のファイルは書き換えない。項目や語彙を変えるときは、版を上げて別の URL にする。
+
+公開先の URL は未決である。
 
 ## 6. `criteria.narrative` の作り方
 
@@ -134,6 +153,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次の 2 つを入
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
     "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
+    "https://purl.imsglobal.org/spec/ob/v3p0/extensions.json",
     "https://example.org/open-badge-metadata/microcredential/v1/context.json"
   ],
   "id": "http://example.com/credentials/3527",
@@ -207,6 +227,15 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次の 2 つを入
 - 必須の記述子がそろっていて、4 章の形に合っている。
 - `criteria.narrative` が、構造化データから 6 章の書式で作った文章と一致する。
 - `achievementType` が `MicroCredential` で、`alignment` にフレームワークが入っている（ガイドライン 3.0 の求め）。
+- ガイドライン 3.0 が必須とする OB 3.0 本体の項目（発行機関の名前、発行日、学習者を識別する情報、名称、内容）が入っている。
+- `@context` と `credentialSchema` が、5 章のとおりに入っている。
+
+このパッケージの `validateBadge()` が、上の 5 つを確かめる。署名と、OB 3.0 本体の項目の細かい形は確かめない。
+
+確かめてあること:
+
+- このルールのコンテキストは、VC 2.0 と OB 3.0 のコンテキストと合わせて、JSON-LD の処理系で展開と正規化（署名の前処理）ができる。定義の無い項目名は、処理系が失敗として扱う。
+- 7 章の記載例は、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にある。
 
 ## 参考
 

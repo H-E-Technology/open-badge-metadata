@@ -24,6 +24,23 @@ export {
   microCredentialProfile,
 } from "./profiles/microcredential.ts";
 export { NARRATIVE_HEADINGS, renderText, toCriteriaNarrative } from "./narrative.ts";
+export { MicroCredentialBadge, toCredentialJsonSchema, validateBadge } from "./badge.ts";
+export { jsonLdContext } from "./context.ts";
+export { narrativeTestVectors, type NarrativeTestVector } from "./vectors.ts";
+export {
+  ACHIEVEMENT_TYPE,
+  CONTEXT_URL,
+  CREDENTIAL_SCHEMA_URL,
+  FRAMEWORK_URLS,
+  OB_CONTEXT_URL,
+  OB_CREDENTIAL_SCHEMA_URL,
+  OB_EXTENSIONS_CONTEXT_URL,
+  RULE_BASE_URL,
+  RULE_VERSION,
+  SCHEMA_VALIDATOR_TYPE,
+  VC_CONTEXT_URL,
+  VOCAB_URL,
+} from "./rule.ts";
 export { EuMicrocredentialMetadata, euMicrocredentialProfile } from "./profiles/eu-microcredential.ts";
 export {
   CompletionCertificateMetadata,
