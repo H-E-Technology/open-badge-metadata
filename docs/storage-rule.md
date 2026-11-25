@@ -1,6 +1,6 @@
 # マイクロクレデンシャル記述子の格納ルール（案 0.1）
 
-状態: 叩き台。項目名、型、語彙はどれも合意していない。決めていない点は [open-questions.md](open-questions.md) にまとめている。
+状態: 案。語彙、本文の言い回し、公開先の URL は仮のものである。構造化データの型、検証、文章を作る関数はこのパッケージにあり、JSON-LD コンテキストとバッジ全体の検証はまだ無い。決めていない点は [open-questions.md](open-questions.md) にまとめている。
 
 ## 1. 解きたい問題
 
@@ -43,7 +43,7 @@
 | 授業言語 | `languages` | 選択 | 言語タグの配列。例: `["ja"]` |
 | 授業の方法 | `participation` | 必須 | `mode`（必須。`onsite`、`online`、`hybrid` のどれか）、`timing`（任意。`synchronous`、`asynchronous`、`mixed` のどれか）、`description`（テキスト、任意） |
 | 学習量（総学習時間） | `learnerEffort` | 必須 | `totalHours`（必須。10 以上の数値）、`contactHours`（授業時間。任意の数値）、`description`（テキスト、任意） |
-| 評価の方法 | `assessments` | 必須 | 1 件以上の配列。要素は `method`（必須。語彙は未決）と `description`（テキスト、任意） |
+| 評価の方法 | `assessments` | 必須 | 1 件以上の配列。要素は `method`（必須。語彙は仮の 9 種）と `description`（テキスト、任意） |
 | 質保証 | `qualityAssurance` | 必須 | `internal`（必須。内部質保証の基準の `name` と、任意の `url`）、`external`（任意の配列。第三者による評価・認証の `name` と、任意の `url`） |
 | レベル | `levels` | 選択 | 配列。要素は `framework`（枠組みの名前）、`value`（その枠組みでの値）、`url`（定義のある場所、任意） |
 | 証明書 | `certification` | 選択 | テキスト |
@@ -53,8 +53,11 @@
 
 補足:
 
+- オブジェクトには `type` を持たせ、`MicroCredentialDescriptors` を含める。
+- 表に無い項目名は使えない。項目名の打ち間違いを検証で見つけるためである。
+- 選択の配列は、値が無ければ項目ごと省く。空の配列は使えない。
 - `learnerEffort.totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。上限（学位課程 1 年分）は時間数で決まっていないので、検証しない。
-- `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件入れる。
+- `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件だけ入れる。ほかの認定とは並べず、`scheme` と `amount` は書かない。
 - フレームワークは、質保証の記述子に「本フレームワークに準拠していること」を書くよう求めている。これはガイドライン 3.0 どおり `achievement.alignment` にフレームワークの名前と URL を入れることで示し、ここには重ねて持たない。
 
 ### OB 3.0 本体の項目を使わない理由
@@ -89,7 +92,24 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次の 2 つを入
 - 配列は、行頭にハイフンと空白を付けた箇条書きにする。
 - 値の無い選択記述子は、見出しごと省く。
 
-区分や数値を本文にするときの言い回し（`online` を「オンライン」と書く、など）はまだ決めていない。8 章の一致の検証には言い回しを固定する必要があるので、実装とあわせて定める。
+### 本文の言い回し（仮）
+
+区分や数値を本文にするときの書き方は次のとおりで、仮のものである。同じ構造化データからは、いつも同じ文章ができる。8 章の一致の検証は、この書き方を前提にする。
+
+| 対象 | 書き方 | 例 |
+| --- | --- | --- |
+| テキスト | 日本語、英語、ほかの言語（言語タグの順）に並べ、2 つ目以降を括弧に入れる | `統計学の基礎知識（Basic statistics knowledge）` |
+| 学修成果 | 1 件ごとに箇条書きにする。スキル標準への対応があれば、Markdown のリンクで続ける | `- 統計手法を適用する [名前](URL)` |
+| 授業言語 | 言語名を読点で並べる。日本語、英語、中国語、韓国語以外は、言語タグのまま書く | `日本語（Japanese）、英語（English）` |
+| 授業の方法 | 区分を日本語と英語で書く。説明があれば次の行に書く | `オンライン、同期（Online, synchronous）` |
+| 学習量 | 時間数を日本語と英語で書く。説明があれば次の行に書く | `90 時間、うち授業時間 30 時間（90 hours, including 30 contact hours）` |
+| 評価の方法 | 1 件ごとに箇条書きにする。説明があればコロンで続ける | `- プロジェクト・成果物（Project）` |
+| 質保証 | 内部、外部の順に箇条書きにする。URL があれば名前の後に書く | `- 内部質保証（Internal）: 質保証委員会による審査` |
+| レベル | 「枠組み: 値」を箇条書きにする。URL があれば後に書く | `- 大学の課程: 学士` |
+| 単位／その他の認定 | 種類、制度名と数値、説明の順に書く | `- 単位（Credit）: UCTS 2` |
+| 前提条件、積み上げ可能性 | 1 件ごとに箇条書きにする。URL があれば後に書く | `- 統計学の基礎知識` |
+
+区分の日本語名と英語名は、`src/narrative.ts` に表として持っている。
 
 見出しと並び順:
 
@@ -152,7 +172,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次の 2 つを入
         }
       ],
       "criteria": {
-        "narrative": "学修成果 (Learning Outcomes):\n- データサイエンスの基本概念を理解する\n- 統計手法を実世界の問題に適用する\n\n授業言語 (Language):\n日本語\n\n授業の方法 (Form of participation):\nオンライン（同期）\n\n学習量（総学習時間） (Learner effort):\n90 時間（うち授業時間 30 時間）\n\n評価の方法 (Type of assessment):\n- プロジェクト提出\n- ピアレビュー\n\n質保証 (Type of quality assurance):\n内部質保証: 質保証委員会による審査\n\nレベル (Level):\n大学の課程: 学士\n\n単位/その他認定 (Credit/Other recognition):\n- UCTS 2 単位\n- PDU 15 点\n\n(受講)前提条件 (Prerequisites needed to enroll):\n- 統計学の基礎知識"
+        "narrative": "学修成果 (Learning Outcomes):\n- データサイエンスの基本概念を理解する\n- 統計手法を実世界の問題に適用する\n\n授業言語 (Language):\n日本語（Japanese）\n\n授業の方法 (Form of participation):\nオンライン、同期（Online, synchronous）\n\n学習量（総学習時間） (Learner effort):\n90 時間、うち授業時間 30 時間（90 hours, including 30 contact hours）\n\n評価の方法 (Type of assessment):\n- プロジェクト・成果物（Project）\n- 相互評価（Peer assessment）\n\n質保証 (Type of quality assurance):\n- 内部質保証（Internal）: 質保証委員会による審査\n\nレベル (Level):\n- 大学の課程: 学士\n\n単位/その他認定 (Credit/Other recognition):\n- 単位（Credit）: UCTS 2\n- 継続教育ポイント（Continuing education）: PDU 15\n\n(受講)前提条件 (Prerequisites needed to enroll):\n- 統計学の基礎知識"
       },
       "microCredentialDescriptors": {
         "type": ["MicroCredentialDescriptors"],
