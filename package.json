@@ -32,6 +32,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/generate-json-schemas.ts",
+    "build:site": "pnpm build && node scripts/build-site.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"

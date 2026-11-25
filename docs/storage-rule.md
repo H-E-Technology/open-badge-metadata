@@ -97,10 +97,10 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 公開するときの決まり:
 
 - コンテキストと JSON Schema は、CORS の制限なしで公開する（OB 3.0 の仕様の要件）。
-- OB 3.0 の仕様では、検証する側が `credentialSchema` の URL から JSON Schema を取得し、バッジが合っているかを確かめる。URL が開けないと検証に失敗するので、仮の URL のままのバッジは他のウォレットで検証できない。
+- OB 3.0 の仕様では、検証する側が `credentialSchema` の URL から JSON Schema を取得し、バッジが合っているかを確かめる。URL が開けないと検証に失敗する。
 - 公開した版のファイルは書き換えない。項目や語彙を変えるときは、版を上げて別の URL にする。
 
-公開先の URL は未決である。
+今の URL は、試すための置き場所（GitHub Pages の `draft/` の下）を指している。ここに置いたファイルは書き換えることがある。本番の URL は未決である。
 
 ## 6. `criteria.narrative` の作り方
 
@@ -146,7 +146,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 
 ## 7. 記載例
 
-ガイドライン 3.0 の記載例に、構造化データを足したもの。`example.org` の URL は仮のものである。
+ガイドライン 3.0 の記載例に、構造化データを足したもの。コンテキストと JSON Schema の URL は、試すための置き場所を指している。
 
 ```json
 {
@@ -154,7 +154,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
     "https://www.w3.org/ns/credentials/v2",
     "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
     "https://purl.imsglobal.org/spec/ob/v3p0/extensions.json",
-    "https://example.org/open-badge-metadata/microcredential/v1/context.json"
+    "https://h-e-technology.github.io/open-badge-metadata/draft/microcredential/v1/context.json"
   ],
   "id": "http://example.com/credentials/3527",
   "type": ["VerifiableCredential", "OpenBadgeCredential"],
@@ -171,7 +171,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
       "type": "1EdTechJsonSchemaValidator2019"
     },
     {
-      "id": "https://example.org/open-badge-metadata/microcredential/v1/schema.json",
+      "id": "https://h-e-technology.github.io/open-badge-metadata/draft/microcredential/v1/schema.json",
       "type": "1EdTechJsonSchemaValidator2019"
     }
   ],

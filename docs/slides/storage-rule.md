@@ -454,11 +454,11 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
   "https://www.w3.org/ns/credentials/v2",
   "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
   "https://purl.imsglobal.org/spec/ob/v3p0/extensions.json",
-  "https://example.org/…/microcredential/v1/context.json"
+  "https://h-e-technology.github.io/…/draft/microcredential/v1/context.json"
 ],
 "credentialSchema": [
   { "id": "（OB 3.0 の JSON Schema の URL）", "type": "1EdTechJsonSchemaValidator2019" },
-  { "id": "https://example.org/…/microcredential/v1/schema.json",
+  { "id": "https://h-e-technology.github.io/…/draft/microcredential/v1/schema.json",
     "type": "1EdTechJsonSchemaValidator2019" }
 ]
 ```
@@ -483,7 +483,7 @@ td:first-child code { white-space:nowrap; }
 - コンテキストと JSON Schema は、CORS の制限なしで公開する（OB 3.0 の仕様の要件）
 - 検証する側は `credentialSchema` の URL から JSON Schema を取得する。開けないと検証に失敗する
 - 公開した版のファイルは書き換えない。項目や語彙を変えるときは、版を上げて別の URL にする
-- 今の URL（`example.org`）は仮のもので、公開先は未決である
+- 今の URL は試すための置き場所を指している。本番の公開先は未決である
 
 ---
 

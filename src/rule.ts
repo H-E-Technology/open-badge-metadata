@@ -5,10 +5,11 @@
 /**
  * コンテキスト、JSON Schema、語彙の公開先。
  *
- * ⚠️ 仮の URL。発行したバッジに書き込まれる値なので、公開した後は変えられない。
- *    公開先が決まったら、ここを差し替える（docs/open-questions.md）。
+ * ⚠️ 試すための URL（GitHub Pages の draft/ の下）。ここに置いたファイルは書き換えることがある。
+ *    本番の URL は、発行したバッジに書き込まれると変えられないので、別に決める
+ *    （docs/open-questions.md）。決まったら、ここを差し替える。
  */
-export const RULE_BASE_URL = "https://example.org/open-badge-metadata";
+export const RULE_BASE_URL = "https://h-e-technology.github.io/open-badge-metadata/draft";
 
 /** ルールの版。項目や語彙を変えて、古い版と読み方が変わるときに上げる */
 export const RULE_VERSION = "v1";
