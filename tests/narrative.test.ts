@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   NARRATIVE_HEADINGS,
+  formatNumber,
   microCredentialProfile,
   narrativeTestVectors,
   renderText,
@@ -27,6 +28,18 @@ describe("toCriteriaNarrative", () => {
       expect(toCriteriaNarrative(vector.descriptors)).toBe(vector.narrative);
     },
   );
+
+  it.each(
+    narrativeTestVectors
+      .filter((v) => v.descriptorsJson !== undefined)
+      .map((v) => [v.name, v] as const),
+  )("照合用データ「%s」の JSON のテキストは、構造化データと同じ値になり、同じ文章になる", (_, vector) => {
+    const parsed: unknown = JSON.parse(vector.descriptorsJson ?? "");
+    expect(parsed).toEqual(vector.descriptors);
+    const result = validateMetadata(microCredentialProfile, parsed);
+    expect(result.success ? [] : result.issues).toEqual([]);
+    expect(toCriteriaNarrative(parsed as MicroCredentialDescriptors)).toBe(vector.narrative);
+  });
 
   it("同じ入力からは同じ文章を作る", () => {
     expect(toCriteriaNarrative(validDescriptors)).toBe(toCriteriaNarrative(validDescriptors));
@@ -175,6 +188,32 @@ describe("Markdown のエスケープ", () => {
       },
     });
     expect(narrative).toContain("- 内部質保証（Internal）: 審査 <https://example.ac.jp/[x](y)>");
+  });
+});
+
+describe("formatNumber", () => {
+  it.each([
+    [90, "90"],
+    [90.0, "90"],
+    [10.5, "10.5"],
+    [10.25, "10.25"],
+    [0.75, "0.75"],
+    [100000, "100000"],
+    [-0, "0"],
+  ])("%s を %s と書く", (n, text) => {
+    expect(formatNumber(n)).toBe(text);
+  });
+
+  it("指数表記を使わない", () => {
+    expect(formatNumber(1e21)).toBe("1000000000000000000000");
+    expect(formatNumber(1.5e22)).toBe("15000000000000000000000");
+    expect(formatNumber(1e-7)).toBe("0.0000001");
+    expect(formatNumber(-1.25e-7)).toBe("-0.000000125");
+  });
+
+  it("数値として書けない値は投げる", () => {
+    expect(() => formatNumber(Number.NaN)).toThrow(RangeError);
+    expect(() => formatNumber(Number.POSITIVE_INFINITY)).toThrow(RangeError);
   });
 });
 

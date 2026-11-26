@@ -17,6 +17,7 @@ import type {
  * 食い違っていないかは、この関数の出力と比べて確かめる。
  *
  * ⚠️ 区分や数値を本文にするときの言い回しは仮のもの（docs/storage-rule.md の 6 章）。
+ * 数値の書き方は formatNumber() にまとめている。
  */
 
 /** 見出し。名前と並び順はガイドライン 3.0 の記載例に合わせている */
@@ -114,6 +115,31 @@ const withUrl = (text: string, url: string | undefined): string =>
 /** Markdown のリンクの文字に入れるため、`\`、`[`、`]` の前に `\` を付ける */
 const escapeLinkText = (text: string): string => text.replace(/[\\[\]]/g, "\\$&");
 
+/**
+ * 数値を本文に入れる文字にする（docs/storage-rule.md の 6 章）。
+ * - 10 進で書き、指数表記と桁区切りは使わない
+ * - 小数部が 0 なら整数で書く（JSON の `90.0` は `"90"`）
+ * - 小数部は末尾の 0 を付けない（`10.50` は `"10.5"`）
+ *
+ * 数値の言語ごとの文字列化（JavaScript の `String()`、Dart の `toString()` など）は
+ * 結果が揃わないので、本文にはこの書き方で入れる。
+ * 4 章の値の範囲では、値は 10 進で正確に表せるので、小数の丸めは起こらない。
+ */
+export function formatNumber(n: number): string {
+  if (!Number.isFinite(n)) throw new RangeError(`数値として書けない値です: ${n}`);
+  // String() は、元の値に戻せる最短の 10 進の桁を返す。-0 は "0" になる
+  const text = String(n);
+  const m = /^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/.exec(text);
+  if (m === null) return text;
+  // 指数表記（1e+21、1e-7 など）を、指数を使わない形に直す
+  const [, sign = "", head = "", tail = "", exp = "0"] = m;
+  const digits = head + tail;
+  const point = 1 + Number(exp); // 整数部の桁数
+  if (point <= 0) return `${sign}0.${"0".repeat(-point)}${digits}`;
+  if (point >= digits.length) return sign + digits + "0".repeat(point - digits.length);
+  return `${sign}${digits.slice(0, point)}.${digits.slice(point)}`;
+}
+
 const hours = (n: number): string => (n === 1 ? "hour" : "hours");
 
 function participationLines(p: MicroCredentialDescriptors["participation"]): string[] {
@@ -126,16 +152,19 @@ function participationLines(p: MicroCredentialDescriptors["participation"]): str
 }
 
 function learnerEffortLines(e: MicroCredentialDescriptors["learnerEffort"]): string[] {
+  const total = formatNumber(e.totalHours);
   const head =
     e.contactHours === undefined
-      ? `${e.totalHours} 時間（${e.totalHours} ${hours(e.totalHours)}）`
-      : `${e.totalHours} 時間、うち授業時間 ${e.contactHours} 時間` +
-        `（${e.totalHours} ${hours(e.totalHours)}, including ${e.contactHours} contact ${hours(e.contactHours)}）`;
+      ? `${total} 時間（${total} ${hours(e.totalHours)}）`
+      : `${total} 時間、うち授業時間 ${formatNumber(e.contactHours)} 時間` +
+        `（${total} ${hours(e.totalHours)}, including ${formatNumber(e.contactHours)} contact ${hours(e.contactHours)}）`;
   return e.description === undefined ? [head] : [head, renderText(e.description)];
 }
 
 function recognitionLine(r: MicroCredentialDescriptors["recognitions"][number]): string {
-  const amount = [r.scheme, r.amount].filter((v) => v !== undefined).join(" ");
+  const amount = [r.scheme, r.amount === undefined ? undefined : formatNumber(r.amount)]
+    .filter((v) => v !== undefined)
+    .join(" ");
   const details = [amount, r.description === undefined ? "" : renderText(r.description)].filter(
     (v) => v !== "",
   );

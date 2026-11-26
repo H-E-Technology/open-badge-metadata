@@ -96,7 +96,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 | --- | --- |
 | `context.json` | JSON-LD コンテキスト。足す項目名は `microCredentialDescriptors` の 1 つだけで、その中の項目名は、この項目の中だけで効く定義にしている |
 | `schema.json` | バッジ全体に当てる JSON Schema（Draft 2019-09）。8 章で確かめることを、JSON Schema で書けるかぎり確かめる |
-| `test-vectors.json` | 構造化データと、そこから作られる文章の組。TypeScript 以外で文章の生成を実装するときに、結果を突き合わせる |
+| `test-vectors.json` | 構造化データと、そこから作られる文章の組。TypeScript 以外で文章の生成を実装するときに、結果を突き合わせる。`descriptorsJson`（構造化データを JSON で書いたテキスト）がある例は、そのテキストを JSON として読んだものから文章を作る。`90.0` のような数値の書き方は、JSON に書き出すと残らないためである |
 
 ビルドすると `dist/rule/microcredential/v1/` にできる。公開先の URL と同じ並びにしている。
 
@@ -146,6 +146,14 @@ URL とリンクの書き方:
 - URL は `<URL>` の形（Markdown の自動リンク）で書く。名前の後ろに続ける URL も、学修成果のリンク先も同じ。URL の中の `[`、`]`、`(`、`)` は、そのまま書く。
 - 学修成果のリンクの文字（`targetName`）は、`\`、`[`、`]` の前に `\` を付ける。例: `targetName` が `スキル標準 [第2版]` なら `[スキル標準 \[第2版\]](<https://example.org/skills/ds-1>)`。
 - この書き方で作った文章の例は、照合用データ（`test-vectors.json`）の「Markdown のエスケープが要る値」にある。
+
+数値（`learnerEffort` の `totalHours` と `contactHours`、`recognitions[].amount`）の書き方:
+
+- 10 進で書く。指数表記（`1e+21` など）と桁区切り（`1,000` など）は使わない。
+- 小数部が 0 なら整数で書く。JSON で `90.0` や `9.0e1` と書かれた値も `90` と書く。
+- 小数部は、末尾の 0 を付けない。JSON で `10.50` と書かれた値は `10.5` と書く。
+- 数値を文字にする各言語の標準の書き方（JavaScript の `String()`、Dart の `toString()` など）は、結果が揃わない（Dart は `90.0` を `"90.0"` にする）。8 章の一致の検証のため、どの言語でもこの書き方で文字にする。
+- この書き方で作った文章の例は、照合用データ（`test-vectors.json`）の「JSON での数値の書き方」にある。
 
 区分の日本語名と英語名は、`src/narrative.ts` に表として持っている。
 

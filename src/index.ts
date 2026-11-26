@@ -27,7 +27,7 @@ export {
   RecognitionKind,
   microCredentialProfile,
 } from "./profiles/microcredential.ts";
-export { NARRATIVE_HEADINGS, renderText, toCriteriaNarrative } from "./narrative.ts";
+export { NARRATIVE_HEADINGS, formatNumber, renderText, toCriteriaNarrative } from "./narrative.ts";
 export { MicroCredentialBadge, toCredentialJsonSchema, validateBadge } from "./badge.ts";
 export { jsonLdContext } from "./context.ts";
 export { narrativeTestVectors, type NarrativeTestVector } from "./vectors.ts";
