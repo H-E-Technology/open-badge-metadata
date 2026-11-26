@@ -254,7 +254,7 @@ URL とリンクの書き方:
 確かめてあること:
 
 - このルールのコンテキストは、VC 2.0 と OB 3.0 のコンテキストと合わせて、JSON-LD の処理系で展開と正規化（署名の前処理）ができる。定義の無い項目名は、処理系が失敗として扱う。
-- 7 章の記載例は、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にある。
+- 7 章の記載例と、照合用データの構造化データで組んだバッジは、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にある。OB 3.0 本体の JSON Schema は、1EdTech が公開しているものの写し（`tests/vendor/`）を、format の検証も含めて当てている（`tests/ob3-schema.test.ts`）。
 
 ## 参考
 
