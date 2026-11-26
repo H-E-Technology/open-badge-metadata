@@ -82,7 +82,8 @@ import schema from "@h-e-technology/open-badge-metadata/schemas/microcredential.
 pnpm install
 pnpm typecheck
 pnpm test
-pnpm build   # dist/ に JS・型・JSON Schema を出す
+pnpm build        # dist/ に JS・型・JSON Schema を出す
+pnpm test:build   # site/ を作り、dist/ と site/ の中身と package.json の exports を確かめる（pnpm build の後）
 ```
 
 ## 文書

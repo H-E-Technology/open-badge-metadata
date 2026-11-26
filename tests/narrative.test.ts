@@ -7,6 +7,7 @@ import {
   narrativeTestVectors,
   renderText,
   toCriteriaNarrative,
+  toJsonSchema,
   validateMetadata,
   type MicroCredentialDescriptors,
 } from "../src/index.ts";
@@ -40,6 +41,33 @@ describe("toCriteriaNarrative", () => {
     const result = validateMetadata(microCredentialProfile, parsed);
     expect(result.success ? [] : result.issues).toEqual([]);
     expect(toCriteriaNarrative(parsed as MicroCredentialDescriptors)).toBe(vector.narrative);
+  });
+
+  it("照合用データには、構造化データのすべての項目が入っている", () => {
+    // JSON Schema の properties をたどって、項目のパス（配列は []、テキストの中は数えない）を集める
+    type Schema = { properties?: Record<string, Schema>; items?: Schema };
+    const schemaPaths = (schema: Schema, prefix: string): string[] =>
+      Object.entries(schema.properties ?? {}).flatMap(([key, child]) => {
+        const path = `${prefix}${key}`;
+        const inner = child.items ?? child;
+        const suffix = child.items === undefined ? "" : "[]";
+        return [path, ...schemaPaths(inner, `${path}${suffix}.`)];
+      });
+    const valuePaths = (value: unknown, prefix: string, into: Set<string>): void => {
+      if (Array.isArray(value)) {
+        for (const item of value) valuePaths(item, `${prefix}[]`, into);
+      } else if (typeof value === "object" && value !== null) {
+        for (const [key, child] of Object.entries(value)) {
+          const path = prefix === "" ? key : `${prefix}.${key}`;
+          into.add(path);
+          valuePaths(child, path, into);
+        }
+      }
+    };
+    const used = new Set<string>();
+    for (const vector of narrativeTestVectors) valuePaths(vector.descriptors, "", used);
+    const all = schemaPaths(toJsonSchema(microCredentialProfile) as Schema, "");
+    expect(all.filter((path) => !used.has(path))).toEqual([]);
   });
 
   it("同じ入力からは同じ文章を作る", () => {

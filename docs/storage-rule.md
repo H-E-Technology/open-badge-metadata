@@ -280,7 +280,9 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 確かめてあること:
 
 - このルールのコンテキストは、VC 2.0 と OB 3.0 のコンテキストと合わせて、JSON-LD の処理系で展開と正規化（署名の前処理）ができる。定義の無い項目名は、処理系が失敗として扱う。
-- 7 章の記載例は、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にある。
+- 7 章の記載例は、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にあり、7 章の JSON と同じ内容である。
+- `schema.json` と `validateBadge()`、プロファイルの JSON Schema と `validateMetadata()` は、テストで使う書き換えの例のすべてで同じ結果になる（5 章で挙げた、JSON Schema では確かめない決まりを除く）。
+- 照合用データ（`test-vectors.json`）の構造化データは、どれも JSON-LD の処理系で展開できる。照合用データには、4 章のすべての項目（URL の項目と、`alignment` の 7 項目を含む）が入っている。
 
 ## 参考
 

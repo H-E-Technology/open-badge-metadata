@@ -104,7 +104,11 @@ const minimal: NarrativeTestVector = {
 - なし（None）`,
 };
 
-/** 11 記述子すべてと、説明、URL、スキル標準への対応、複数の言語 */
+/**
+ * 11 記述子すべてと、説明、URL、スキル標準への対応、複数の言語。
+ * URL の項目はすべて入れる。alignment には OB 3.0 の 7 項目をすべて入れる
+ * （文章に入るのは targetName と targetUrl だけ）。
+ */
 const full: NarrativeTestVector = {
   name: "11 記述子すべてと、説明・URL・複数言語",
   descriptors: {
@@ -116,6 +120,10 @@ const full: NarrativeTestVector = {
           type: ["Alignment"],
           targetName: "サンプルスキル標準 データ分析 1",
           targetUrl: "https://example.org/skills/ds-1",
+          targetCode: "DS-1",
+          targetDescription: "データ分析の基礎的な手法を使える",
+          targetFramework: "サンプルスキル標準",
+          targetType: "ceasn:Competency",
         },
       },
     ],
@@ -133,7 +141,9 @@ const full: NarrativeTestVector = {
     assessments: [{ method: "project", description: { ja: "最終成果物を提出する" } }],
     qualityAssurance: {
       internal: { name: { ja: "質保証委員会による審査" }, url: "https://example.ac.jp/qa" },
-      external: [{ name: { ja: "サンプル認証機構の認証" } }],
+      external: [
+        { name: { ja: "サンプル認証機構の認証" }, url: "https://example.org/accreditation" },
+      ],
     },
     levels: [{ framework: "EQF", value: "6", url: "https://example.org/eqf/6" }],
     certification: { ja: "修了証をデジタル発行", en: "Certificate issued digitally" },
@@ -144,7 +154,12 @@ const full: NarrativeTestVector = {
     prerequisites: [
       { description: { ja: "統計学の基礎知識" }, url: "https://example.ac.jp/courses/stat-101" },
     ],
-    stackableInto: [{ name: { ja: "データサイエンス・マイクロクレデンシャル" } }],
+    stackableInto: [
+      {
+        name: { ja: "データサイエンス・マイクロクレデンシャル" },
+        url: "https://example.ac.jp/credentials/data-science",
+      },
+    ],
   },
   narrative: `学修成果 (Learning Outcomes):
 - 統計手法を適用する（Apply statistical methods） [サンプルスキル標準 データ分析 1](<https://example.org/skills/ds-1>)
@@ -165,7 +180,7 @@ const full: NarrativeTestVector = {
 
 質保証 (Type of quality assurance):
 - 内部質保証（Internal）: 質保証委員会による審査 <https://example.ac.jp/qa>
-- 外部質保証（External）: サンプル認証機構の認証
+- 外部質保証（External）: サンプル認証機構の認証 <https://example.org/accreditation>
 
 レベル (Level):
 - EQF: 6 <https://example.org/eqf/6>
@@ -181,7 +196,7 @@ const full: NarrativeTestVector = {
 - 統計学の基礎知識 <https://example.ac.jp/courses/stat-101>
 
 積み上げ可能性 (Stackability):
-- データサイエンス・マイクロクレデンシャル`,
+- データサイエンス・マイクロクレデンシャル <https://example.ac.jp/credentials/data-science>`,
 };
 
 /**
