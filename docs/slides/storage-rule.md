@@ -391,7 +391,7 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 
 | 記述子 | 項目名 | 区分 | 形 |
 | --- | --- | --- | --- |
-| 学修成果 | `learningOutcomes` | 必須 | 1 件以上の配列。要素は `description`（テキスト、必須）と `alignment`（スキル標準などへの対応、任意） |
+| 学修成果 | `learningOutcomes` | 必須 | 1 件以上の配列。要素は `description`（テキスト、必須）と `alignment`（スキル標準などへの対応、任意。OB 3.0 の `Alignment` の 7 項目だけ） |
 | 授業言語 | `languages` | 選択 | 言語タグの配列。例は `["ja"]` |
 | 授業の方法 | `participation` | 必須 | `mode`（必須）は `onsite`、`online`、`hybrid`。`timing`（任意）は `synchronous`、`asynchronous`、`mixed` |
 | 学習量 | `learnerEffort` | 必須 | `totalHours` は必須で、10 以上の数値。`contactHours`（授業時間）は任意の 0 以上の数値 |

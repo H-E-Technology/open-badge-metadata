@@ -30,8 +30,13 @@ export const DESCRIPTORS_TYPE = "MicroCredentialDescriptors";
  * refine のすぐ後に、同じ決まりを JSON Schema の書き方で .meta() に添える。
  */
 
-/** OB 3.0 の Alignment。拡張可能なクラスなので、ここに無い項目も通す */
-export const Alignment = z.looseObject({
+/**
+ * OB 3.0 の Alignment。OB 3.0 が定める 7 項目だけを通す（strictObject）。
+ * OB 3.0 の JSON-LD コンテキストに定義の無い項目があると、署名の前処理（JSON-LD としての処理）で
+ * 失敗するか、黙って捨てられて署名の対象から外れるため。
+ * 学修成果の alignment と、バッジ本体の achievement.alignment の両方に使う。
+ */
+export const Alignment = z.strictObject({
   type: z
     .array(z.string())
     .refine((t) => t.includes("Alignment"), { message: "type に Alignment を含めてください" })

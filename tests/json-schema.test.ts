@@ -98,6 +98,40 @@ const descriptorCases: [name: string, change: (d: Json) => void, valid: boolean]
       }),
     true,
   ],
+  [
+    "学修成果の alignment に OB 3.0 の 7 項目をすべて書く",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "スキル標準",
+        targetUrl: "https://example.org/skills/1",
+        targetCode: "DS-1",
+        targetDescription: "データ分析の基礎",
+        targetFramework: "サンプルスキル標準",
+        targetType: "ceasn:Competency",
+      }),
+    true,
+  ],
+  [
+    "学修成果の alignment に決まりに無い項目",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "a",
+        targetUrl: "https://e.org/a",
+        foo: "x",
+      }),
+    false,
+  ],
+  [
+    "学修成果の alignment に targetName が無い",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetUrl: "https://e.org/a",
+      }),
+    false,
+  ],
   ["総学習時間が 10 時間未満", (d) => (d.learnerEffort.totalHours = 5), false],
   ["決まりに無い項目名", (d) => (d.learnerEffort.totalHour = 90), false],
   ["言語タグの書式に合わない", (d) => (d.languages = ["日本語"]), false],
@@ -263,6 +297,22 @@ const badgeCases: [name: string, change: (b: Json) => void, valid: boolean][] = 
     true,
   ],
   ["alignment が空", (b) => (b.credentialSubject.achievement.alignment = []), false],
+  [
+    "alignment に決まりに無い項目",
+    (b) => (b.credentialSubject.achievement.alignment[0].foo = "x"),
+    false,
+  ],
+  [
+    "alignment に OB 3.0 の 7 項目をすべて書く",
+    (b) =>
+      Object.assign(b.credentialSubject.achievement.alignment[0], {
+        targetCode: "MC-1.0",
+        targetDescription: "マイクロクレデンシャルのフレームワーク",
+        targetFramework: "マイクロクレデンシャルのフレームワーク",
+        targetType: "CTDL",
+      }),
+    true,
+  ],
   [
     "criteria.narrative が無い",
     (b) => delete b.credentialSubject.achievement.criteria.narrative,

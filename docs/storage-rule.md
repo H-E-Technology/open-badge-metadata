@@ -55,6 +55,7 @@
 
 - オブジェクトには `type` を持たせ、`MicroCredentialDescriptors` を含める。
 - 表に無い項目名は使えない。項目名の打ち間違いを検証で見つけるためである。
+- `alignment`（学修成果の `alignment` と、バッジ本体の `achievement.alignment`）には、OB 3.0 の `Alignment` が定める `type`、`targetName`、`targetUrl`、`targetCode`、`targetDescription`、`targetFramework`、`targetType` だけを書ける。`type` には `Alignment` を含め、`targetName` と `targetUrl` は必須である。ほかの項目は OB 3.0 の JSON-LD コンテキストに定義が無く、署名の前処理（JSON-LD としての処理）で失敗するか、処理系によっては黙って捨てられて署名の対象から外れる。JSON Schema では `additionalProperties: false` で同じ決まりを確かめる。
 - 選択の配列は、値が無ければ項目ごと省く。空の配列は使えない。
 - URL の項目（`alignment.targetUrl`、`qualityAssurance` の `url`、`levels[].url`、`prerequisites[].url`、`stackableInto[].url`）は、スキームが `http` か `https`（小文字）の URL に限る。`javascript:` や `data:` などは使えない。空白、制御文字、`<`、`>`、`\` も使えない。`criteria.narrative` は Markdown として表示されるので、押せるリンクになる URL を限り、6 章の `<URL>` の形で途中が切れないようにするためである。JSON Schema では `pattern` で同じ決まりを確かめる。
 - このルールの記述子ではないが、ほかのプロファイルの組織の識別子（`eu-microcredential` の `awardingBody[].id` と `qualityAssurance.body.id`、`completion-certificate` の `provider.id`）は、スキームが `http`、`https`、`did`、`urn`（小文字）のものに限る。`did:` は OB 3.0 の発行者で使われる DID（`did:<メソッド名>:…`、メソッド名は小文字の英数字）、`urn:` は法人番号などの URN（`urn:<名前空間>:…`）に使う。`javascript:` や `data:` などは使えず、空白、制御文字、`<`、`>`、`\` も使えない。値は書き換えずに確かめ、JSON Schema では `pattern` で同じ決まりを確かめる。
