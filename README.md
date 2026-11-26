@@ -60,6 +60,8 @@ JSON Schema はパッケージ内のファイルとして読めます。
 import schema from "@h-e-technology/open-badge-metadata/schemas/microcredential.json" with { type: "json" };
 ```
 
+同じファイルは、`$id` の URL（`<公開先>/schemas/<id>/<版>.json`）でも配信しています。置き場所の決め方は [docs/storage-rule.md](docs/storage-rule.md) の 5 章にあります。
+
 ## プロファイル
 
 | id | 内容 | 状態 |

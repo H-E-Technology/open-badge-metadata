@@ -1,5 +1,6 @@
 export {
   defineProfile,
+  profileSchemaUrl,
   toJsonSchema,
   validateMetadata,
   type ProfileDefinition,

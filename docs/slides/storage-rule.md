@@ -463,7 +463,8 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 ]
 ```
 
-`extensions.json` は、`credentialSchema` の `type` を定義するコンテキスト
+- `@context` は VC 2.0、OB 3.0 の順で始める。後ろの 2 つの順は問わない
+- `extensions.json` は、`credentialSchema` の `type` を定義するコンテキスト
 
 ---
 
@@ -620,7 +621,7 @@ td:first-child code { white-space:nowrap; }
 ### 確かめてあること
 
 - コンテキストは、JSON-LD の処理系で展開と正規化（署名の前処理）ができる
-- 記載例は、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る
+- 記載例と照合用データで組んだバッジは、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る
 - コンテキストと JSON Schema は、試すための URL で開ける
 
 ### まだ確かめていないこと
