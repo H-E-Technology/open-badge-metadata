@@ -12,12 +12,39 @@ export const LanguageTag = z
 export const hasCaseInsensitiveDuplicate = (values: readonly string[]): boolean =>
   new Set(values.map((v) => v.toLowerCase())).size !== values.length;
 
+/** 改行と制御文字（C0 制御文字、DEL、C1 制御文字）と、Unicode の行区切り（U+2028）・段落区切り（U+2029） */
+const LINE_BREAK_OR_CONTROL = "\\x00-\\x1f\\x7f-\\x9f\\u2028\\u2029";
+
+/**
+ * テキストの値に使える形（docs/storage-rule.md の 4 章）。
+ * - 改行と制御文字（LINE_BREAK_OR_CONTROL）を含まない
+ * - 空白でない文字を 1 つ以上含む（空白だけの値は使えない）
+ * 値は criteria.narrative に 1 行で入るので、改行を許すと偽の見出しや空行を作れてしまう。
+ * 前後の空白は取り除かず、書かれたとおりに扱う。
+ */
+export const TEXT_VALUE_PATTERN = new RegExp(
+  `^[^${LINE_BREAK_OR_CONTROL}]*[^\\s${LINE_BREAK_OR_CONTROL}][^${LINE_BREAK_OR_CONTROL}]*$`,
+);
+
+/**
+ * 1 行のテキストの値。
+ * z.string().trim() は値を書き換えるので使わず、値は書き換えずに判定する。
+ */
+export const TextValue = z
+  .string()
+  .regex(
+    TEXT_VALUE_PATTERN,
+    "改行と制御文字を含めず、空白だけにしないでください",
+  )
+  .describe("改行と制御文字を含まず、空白でない文字を 1 つ以上含む文字列");
+
 /**
  * 多言語テキスト。キーは BCP 47 の言語タグ（"ja", "en" など）。最低 1 言語。
+ * 値は 1 行のテキスト（TextValue）。
  * キーは書かれたとおりに扱い、大文字小文字を無視して同じになるキー（"ja" と "JA"）は並べられない。
  */
 export const LocalizedText = z
-  .record(LanguageTag, z.string().min(1))
+  .record(LanguageTag, TextValue)
   // JSON Schema では確かめない（大文字小文字を無視した比較は JSON Schema で書けない）
   .refine((v) => !hasCaseInsensitiveDuplicate(Object.keys(v)), {
     message: "大文字小文字だけが違う言語タグを並べないでください",

@@ -35,6 +35,7 @@
     "build:site": "pnpm build && node scripts/build-site.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "test:build": "node scripts/build-site.ts && vitest run --config vitest.build.config.ts",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {

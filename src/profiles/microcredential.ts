@@ -6,6 +6,7 @@ import {
   LanguageTag,
   LocalizedText,
   ParticipationMode,
+  TextValue,
 } from "../common.ts";
 import { defineProfile, type ProfileMetadata } from "../profile.ts";
 
@@ -30,18 +31,23 @@ export const DESCRIPTORS_TYPE = "MicroCredentialDescriptors";
  * refine のすぐ後に、同じ決まりを JSON Schema の書き方で .meta() に添える。
  */
 
-/** OB 3.0 の Alignment。拡張可能なクラスなので、ここに無い項目も通す */
-export const Alignment = z.looseObject({
+/**
+ * OB 3.0 の Alignment。OB 3.0 が定める 7 項目だけを通す（strictObject）。
+ * OB 3.0 の JSON-LD コンテキストに定義の無い項目があると、署名の前処理（JSON-LD としての処理）で
+ * 失敗するか、黙って捨てられて署名の対象から外れるため。
+ * 学修成果の alignment と、バッジ本体の achievement.alignment の両方に使う。
+ */
+export const Alignment = z.strictObject({
   type: z
     .array(z.string())
     .refine((t) => t.includes("Alignment"), { message: "type に Alignment を含めてください" })
     .meta({ contains: { const: "Alignment" } }),
-  targetName: z.string().min(1),
+  targetName: TextValue,
   targetUrl: HttpUrl,
-  targetCode: z.string().min(1).optional(),
-  targetDescription: z.string().min(1).optional(),
-  targetFramework: z.string().min(1).optional(),
-  targetType: z.string().min(1).optional(),
+  targetCode: TextValue.optional(),
+  targetDescription: TextValue.optional(),
+  targetFramework: TextValue.optional(),
+  targetType: TextValue.optional(),
 });
 
 /** 同期型か非同期型か */
@@ -154,9 +160,9 @@ export const MicroCredentialDescriptors = z.strictObject({
     .array(
       z.strictObject({
         /** 枠組みの名前 */
-        framework: z.string().min(1),
+        framework: TextValue,
         /** その枠組みでの値 */
-        value: z.string().min(1),
+        value: TextValue,
         url: HttpUrl.optional(),
       }),
     )
@@ -172,7 +178,7 @@ export const MicroCredentialDescriptors = z.strictObject({
       z.strictObject({
         kind: RecognitionKind,
         /** 単位やポイントの制度名。語彙は未決 */
-        scheme: z.string().min(1).optional(),
+        scheme: TextValue.optional(),
         amount: Quantity.positive().optional(),
         description: LocalizedText.optional(),
       }),

@@ -17,7 +17,7 @@ import type {
  * 食い違っていないかは、この関数の出力と比べて確かめる。
  *
  * ⚠️ 区分や数値を本文にするときの言い回しは仮のもの（docs/storage-rule.md の 6 章）。
- * 数値の書き方は formatNumber() にまとめている。
+ * 数値の書き方は formatNumber() に、テキストの値のエスケープは escapeMarkdown() にまとめている。
  */
 
 /** 見出し。名前と並び順はガイドライン 3.0 の記載例に合わせている */
@@ -68,7 +68,10 @@ const RECOGNITION_LABEL: Record<RecognitionKind, Label> = {
   none: ["なし", "None"],
 };
 
-/** 言語名。ここに無い言語タグは、タグのまま書く */
+/**
+ * 言語名。キーは言語タグの言語の部分（primaryLanguage()）。
+ * 言語の部分がここに無い言語タグは、タグのまま書く。
+ */
 const LANGUAGE_LABEL: Record<string, Label> = {
   ja: ["日本語", "Japanese"],
   en: ["英語", "English"],
@@ -78,17 +81,41 @@ const LANGUAGE_LABEL: Record<string, Label> = {
 
 const both = ([ja, en]: Label): string => `${ja}（${en}）`;
 
-/** 日本語、英語、ほかの言語（タグの順）に並べたときの順位 */
+/**
+ * 言語タグの言語の部分（最初の `-` の前）を小文字にしたもの。
+ * 例: "ja-JP" → "ja"、"EN-us" → "en"、"zh-Hant-TW" → "zh"
+ */
+const primaryLanguage = (tag: string): string => (tag.split("-")[0] ?? "").toLowerCase();
+
+/** 日本語、英語、ほかの言語の順に並べたときの順位。言語の部分で判定する */
 function languageRank(tag: string): number {
-  const lower = tag.toLowerCase();
-  if (lower === "ja") return 0;
-  if (lower === "en") return 1;
+  const language = primaryLanguage(tag);
+  if (language === "ja") return 0;
+  if (language === "en") return 1;
   return 2;
 }
 
+/** CommonMark でバックスラッシュエスケープできる ASCII の記号（U+0021–002F、003A–0040、005B–0060、007B–007E） */
+const MARKDOWN_PUNCTUATION = /[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]/g;
+
+/**
+ * テキストの値を、Markdown の中でそのままの文字として読まれるようにする（docs/storage-rule.md の 6 章）。
+ * ASCII の記号すべての前に `\` を付ける（CommonMark のバックスラッシュエスケープ）。
+ * 見出し（`#`）、箇条書き（`-`、`+`、`1.`）、強調（`*`、`_`）、リンク（`[`、`]`）、
+ * HTML（`<`、`&`）などとして読まれない。
+ * 例: "C++ <入門>" → "C\+\+ \<入門\>"
+ *
+ * 値に改行が無いこと（TextValue）を前提にしている。
+ */
+export const escapeMarkdown = (text: string): string =>
+  text.replace(MARKDOWN_PUNCTUATION, "\\$&");
+
 /**
  * 多言語テキストを 1 つの文字列にする。
- * 日本語、英語、ほかの言語（タグの順）に並べ、2 つ目以降を括弧に入れる。
+ * 日本語、英語、ほかの言語の順に並べ、2 つ目以降を括弧に入れる。
+ * 日本語か英語かは言語タグの言語の部分で判定する（"ja-JP" は日本語）。
+ * 同じ順位の中は、言語タグの文字コードの順（大文字小文字を区別する）に並べる。
+ * それぞれの値は escapeMarkdown() でエスケープする。
  * 例: { ja: "統計学の基礎知識", en: "Basic statistics knowledge" }
  *     → "統計学の基礎知識（Basic statistics knowledge）"
  */
@@ -98,22 +125,20 @@ export function renderText(text: LocalizedText): string {
     if (diff !== 0) return diff;
     return a < b ? -1 : a > b ? 1 : 0;
   });
-  const [main = "", ...rest] = tags.map((tag) => text[tag] ?? "");
+  const [main = "", ...rest] = tags.map((tag) => escapeMarkdown(text[tag] ?? ""));
   return rest.length > 0 ? `${main}（${rest.join(" / ")}）` : main;
 }
 
 /**
  * URL を本文に入れるときは `<URL>` の形にする（Markdown の自動リンク）。
  * URL の中の `[` `]` `(` `)` が Markdown のリンクとして読まれないようにするため。
+ * 自動リンクの中ではバックスラッシュエスケープが効かないので、URL は escapeMarkdown() を通さない。
  * URL に空白や `<` `>` が無いことは、検証（HttpUrl）で確かめている。
  */
 const autolink = (url: string): string => `<${url}>`;
 
 const withUrl = (text: string, url: string | undefined): string =>
   url === undefined ? text : `${text} ${autolink(url)}`;
-
-/** Markdown のリンクの文字に入れるため、`\`、`[`、`]` の前に `\` を付ける */
-const escapeLinkText = (text: string): string => text.replace(/[\\[\]]/g, "\\$&");
 
 /**
  * 数値を本文に入れる文字にする（docs/storage-rule.md の 6 章）。
@@ -163,7 +188,10 @@ function learnerEffortLines(e: MicroCredentialDescriptors["learnerEffort"]): str
 }
 
 function recognitionLine(r: MicroCredentialDescriptors["recognitions"][number]): string {
-  const amount = [r.scheme, r.amount === undefined ? undefined : formatNumber(r.amount)]
+  const amount = [
+    r.scheme === undefined ? undefined : escapeMarkdown(r.scheme),
+    r.amount === undefined ? undefined : formatNumber(r.amount),
+  ]
     .filter((v) => v !== undefined)
     .join(" ");
   const details = [amount, r.description === undefined ? "" : renderText(r.description)].filter(
@@ -182,7 +210,7 @@ export function toCriteriaNarrative(d: MicroCredentialDescriptors): string {
         const text = renderText(o.description);
         return o.alignment === undefined
           ? `- ${text}`
-          : `- ${text} [${escapeLinkText(o.alignment.targetName)}](${autolink(o.alignment.targetUrl)})`;
+          : `- ${text} [${escapeMarkdown(o.alignment.targetName)}](${autolink(o.alignment.targetUrl)})`;
       }),
     ],
     [
@@ -192,7 +220,7 @@ export function toCriteriaNarrative(d: MicroCredentialDescriptors): string {
         : [
             d.languages
               .map((tag) => {
-                const label = LANGUAGE_LABEL[tag.toLowerCase()];
+                const label = LANGUAGE_LABEL[primaryLanguage(tag)];
                 return label === undefined ? tag : both(label);
               })
               .join("、"),
@@ -220,7 +248,9 @@ export function toCriteriaNarrative(d: MicroCredentialDescriptors): string {
     ],
     [
       NARRATIVE_HEADINGS.levels,
-      (d.levels ?? []).map((l) => `- ${withUrl(`${l.framework}: ${l.value}`, l.url)}`),
+      (d.levels ?? []).map(
+        (l) => `- ${withUrl(`${escapeMarkdown(l.framework)}: ${escapeMarkdown(l.value)}`, l.url)}`,
+      ),
     ],
     [
       NARRATIVE_HEADINGS.certification,

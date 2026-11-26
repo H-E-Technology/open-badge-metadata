@@ -92,6 +92,76 @@ describe("JSON-LD コンテキスト", () => {
     ]);
   });
 
+  it("OB 3.0 の Alignment の 7 項目は、学修成果の中でもバッジ本体でも展開できる", async () => {
+    const alignment = {
+      type: ["Alignment"],
+      targetName: "サンプルスキル標準 データ分析 1",
+      targetUrl: "https://example.org/skills/ds-1",
+      targetCode: "DS-1",
+      targetDescription: "データ分析の基礎",
+      targetFramework: "サンプルスキル標準",
+      targetType: "ceasn:Competency",
+    };
+    const base = exampleBadge.credentialSubject.achievement;
+    const badge = {
+      ...exampleBadge,
+      credentialSubject: {
+        ...exampleBadge.credentialSubject,
+        achievement: {
+          ...base,
+          alignment: [...base.alignment, alignment],
+          microCredentialDescriptors: {
+            ...base.microCredentialDescriptors,
+            learningOutcomes: [{ description: { ja: "統計手法を適用する" }, alignment }],
+          },
+        },
+      },
+    };
+    const [credential] = (await jsonld.expand(badge, options)) as Node[];
+    const achievement =
+      credential?.["https://www.w3.org/2018/credentials#credentialSubject"]?.[0]?.[
+        `${OB}achievement`
+      ]?.[0];
+    const descriptors = achievement[term("microCredentialDescriptors")][0];
+    const inOutcome = descriptors[term("learningOutcomes")][0]["@list"][0][`${OB}alignment`][0];
+    const inAchievement = achievement[`${OB}alignment`][1];
+
+    for (const expanded of [inOutcome, inAchievement]) {
+      expect(expanded).toEqual({
+        "@type": ["https://schema.org/AlignmentObject"],
+        "https://schema.org/targetName": [{ "@value": "サンプルスキル標準 データ分析 1" }],
+        "https://schema.org/targetUrl": [
+          {
+            "@value": "https://example.org/skills/ds-1",
+            "@type": "https://www.w3.org/2001/XMLSchema#anyURI",
+          },
+        ],
+        [`${OB}targetCode`]: [{ "@value": "DS-1" }],
+        "https://schema.org/targetDescription": [{ "@value": "データ分析の基礎" }],
+        "https://schema.org/targetFramework": [{ "@value": "サンプルスキル標準" }],
+        [`${OB}targetType`]: [{ "@value": "ceasn:Competency" }],
+      });
+    }
+  });
+
+  it("Alignment に定義の無い項目は、展開の段階で失敗する", async () => {
+    const badge = badgeWith({
+      ...exampleBadge.credentialSubject.achievement.microCredentialDescriptors,
+      learningOutcomes: [
+        {
+          description: { ja: "統計手法を適用する" },
+          alignment: {
+            type: ["Alignment"],
+            targetName: "a",
+            targetUrl: "https://e.org/a",
+            foo: "x",
+          },
+        },
+      ],
+    });
+    await expect(jsonld.expand(badge, options)).rejects.toThrow();
+  });
+
   it("署名の前処理（RDF への正規化）ができる", async () => {
     const nquads = await jsonld.canonize(exampleBadge, {
       ...options,

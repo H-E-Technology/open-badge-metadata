@@ -55,12 +55,16 @@
 
 - オブジェクトには `type` を持たせ、`MicroCredentialDescriptors` を含める。
 - 表に無い項目名は使えない。項目名の打ち間違いを検証で見つけるためである。
+- `alignment`（学修成果の `alignment` と、バッジ本体の `achievement.alignment`）には、OB 3.0 の `Alignment` が定める `type`、`targetName`、`targetUrl`、`targetCode`、`targetDescription`、`targetFramework`、`targetType` だけを書ける。`type` には `Alignment` を含め、`targetName` と `targetUrl` は必須である。ほかの項目は OB 3.0 の JSON-LD コンテキストに定義が無く、署名の前処理（JSON-LD としての処理）で失敗するか、処理系によっては黙って捨てられて署名の対象から外れる。JSON Schema では `additionalProperties: false` で同じ決まりを確かめる。
 - 選択の配列は、値が無ければ項目ごと省く。空の配列は使えない。
 - URL の項目（`alignment.targetUrl`、`qualityAssurance` の `url`、`levels[].url`、`prerequisites[].url`、`stackableInto[].url`）は、スキームが `http` か `https`（小文字）の URL に限る。`javascript:` や `data:` などは使えない。空白、制御文字、`<`、`>`、`\` も使えない。`criteria.narrative` は Markdown として表示されるので、押せるリンクになる URL を限り、6 章の `<URL>` の形で途中が切れないようにするためである。JSON Schema では `pattern` で同じ決まりを確かめる。
 - このルールの記述子ではないが、ほかのプロファイルの組織の識別子（`eu-microcredential` の `awardingBody[].id` と `qualityAssurance.body.id`、`completion-certificate` の `provider.id`）は、スキームが `http`、`https`、`did`、`urn`（小文字）のものに限る。`did:` は OB 3.0 の発行者で使われる DID（`did:<メソッド名>:…`、メソッド名は小文字の英数字）、`urn:` は法人番号などの URN（`urn:<名前空間>:…`）に使う。`javascript:` や `data:` などは使えず、空白、制御文字、`<`、`>`、`\` も使えない。値は書き換えずに確かめ、JSON Schema では `pattern` で同じ決まりを確かめる。
 - `learnerEffort.totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。フレームワークの上限（学位課程 1 年分）は時間数で決まっていないので、検証しない。
 - 数値の項目（`learnerEffort` の `totalHours` と `contactHours`、`recognitions[].amount`）は、0.25 の倍数（小数は `.25`、`.5`、`.75` だけ）で、100000 以下にする。100000 は、学位課程 4 年分（124 単位 × 45 時間 ≒ 5580 時間）より十分大きい、値の誤りを落とすための上限である。どちらも、6 章の文章で数値がどの言語でも同じ文字になるようにするための決まりである（指数表記や丸めの誤差が出ない）。0.1 の刻みにしないのは、0.1 が 2 進数で正確に表せず、JSON Schema の `multipleOf` の結果が検証ツールによって割れるためである。0.1 刻みのポイント（`1.2` CEU など）は `description` に書く。JSON Schema では `multipleOf` と `maximum` で同じ決まりを確かめる。
 - `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件だけ入れる。ほかの認定とは並べず、`scheme` と `amount` は書かない。
+- テキストの値（テキストの各言語の値、`alignment` の `targetName`、`targetCode`、`targetDescription`、`targetFramework`、`targetType`、`levels` の `framework` と `value`、`recognitions[].scheme`）は 1 行で書く。改行と制御文字（U+0000〜U+001F、U+007F〜U+009F。タブ、LF、CR を含む）、行区切り（U+2028）、段落区切り（U+2029）は使えない。値は `criteria.narrative` の 1 行に入るので、改行を許すと、見出しや空行を値の中に作れてしまい、6 章の書式が崩れるためである。
+- テキストの値は、空白でない文字を 1 つ以上含める。空白（全角の空白を含む）だけの値は使えない。前後の空白は取り除かずに、書かれたとおりに扱う。
+- JSON Schema では、テキストの値の 2 つの決まりを `pattern`（`^[^\x00-\x1f\x7f-\x9f\u2028\u2029]*[^\s\x00-\x1f\x7f-\x9f\u2028\u2029][^\x00-\x1f\x7f-\x9f\u2028\u2029]*$`）で確かめる。`\s` は ECMAScript の正規表現の空白（Unicode の空白を含む）である。
 - 言語タグは大文字小文字を区別しない（BCP 47）。テキストに、大文字小文字を無視して同じになるキー（`ja` と `JA` など）を並べてはいけない。同じ言語のどちらを表示するかが決まらないためである。
 - `languages` には、同じ言語を重ねて書かない。大文字小文字を無視して比べる（`["ja", "JA"]` も重複）。
 - `learnerEffort.contactHours`（授業時間）は、`totalHours`（総学習時間）以下にする。
@@ -139,9 +143,9 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 
 | 対象 | 書き方 | 例 |
 | --- | --- | --- |
-| テキスト | 日本語、英語、ほかの言語（言語タグの順）に並べ、2 つ目以降を括弧に入れる | `統計学の基礎知識（Basic statistics knowledge）` |
+| テキスト | 日本語、英語、ほかの言語の順に並べ、2 つ目以降を括弧に入れる。値の記号はエスケープする（下記） | `統計学の基礎知識（Basic statistics knowledge）` |
 | 学修成果 | 1 件ごとに箇条書きにする。スキル標準への対応があれば、Markdown のリンクで続ける | `- 統計手法を適用する [名前](<URL>)` |
-| 授業言語 | 言語名を読点で並べる。日本語、英語、中国語、韓国語以外は、言語タグのまま書く | `日本語（Japanese）、英語（English）` |
+| 授業言語 | 言語名を読点で並べる。日本語、英語、中国語、韓国語以外は、言語タグのまま書く（下記） | `日本語（Japanese）、英語（English）` |
 | 授業の方法 | 区分を日本語と英語で書く。説明があれば次の行に書く | `オンライン、同期（Online, synchronous）` |
 | 学習量 | 時間数を日本語と英語で書く。説明があれば次の行に書く | `90 時間、うち授業時間 30 時間（90 hours, including 30 contact hours）` |
 | 評価の方法 | 1 件ごとに箇条書きにする。説明があればコロンで続ける | `- プロジェクト・成果物（Project）` |
@@ -150,10 +154,23 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 | 単位／その他の認定 | 種類、制度名と数値、説明の順に書く | `- 単位（Credit）: UCTS 2` |
 | 前提条件、積み上げ可能性 | 1 件ごとに箇条書きにする。URL があれば後に書く | `- 統計学の基礎知識` |
 
-URL とリンクの書き方:
+言語タグの扱い:
 
-- URL は `<URL>` の形（Markdown の自動リンク）で書く。名前の後ろに続ける URL も、学修成果のリンク先も同じ。URL の中の `[`、`]`、`(`、`)` は、そのまま書く。
-- 学修成果のリンクの文字（`targetName`）は、`\`、`[`、`]` の前に `\` を付ける。例: `targetName` が `スキル標準 [第2版]` なら `[スキル標準 \[第2版\]](<https://example.org/skills/ds-1>)`。
+- 言語タグの「言語の部分」は、最初の `-` より前の部分を小文字にしたものとする。例: `ja-JP` と `JA` は `ja`、`en-US` は `en`、`zh-Hant-TW` は `zh`。
+- テキストを並べるときは、言語の部分が `ja` のもの、`en` のもの、ほかのもの、の順にする。同じ順位の中は、言語タグを書かれたとおりの文字列として、文字コードの順（大文字小文字を区別する）に並べる。例: `{ "en-US": "US", "en-GB": "UK", "ja-JP": "統計" }` は `統計（UK / US）`。
+- `jav`（ジャワ語）や `enm`（中英語）は、言語の部分が `ja`、`en` と一致しないので、ほかの言語として扱う。
+- 授業言語の名前も、言語の部分で引く。例: `ja-JP` は `日本語（Japanese）`、`zh-Hant` は `中国語（Chinese）`。言語の部分が日本語、英語、中国語、韓国語のどれでもない言語タグは、書かれたとおりに書く（`fr-CA` は `fr-CA`）。
+- この書き方で作った文章の例は、照合用データ（`test-vectors.json`）の「地域付きの言語タグ」にある。
+
+テキストの値と URL の書き方:
+
+- `criteria.narrative` は Markdown として表示される。テキストの値（4 章。テキストの各言語の値、`targetName`、`framework`、`value`、`scheme`）は、文章に入れるときに、ASCII の記号すべての前に `\` を付ける（CommonMark のバックスラッシュエスケープ）。対象は `` !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~ `` の 32 文字（U+0021〜U+002F、U+003A〜U+0040、U+005B〜U+0060、U+007B〜U+007E）である。値が見出し（`#`）、箇条書き（`-`、`+`、`1.`）、強調（`*`、`_`）、リンク（`[`、`]`）、HTML のタグや文字参照（`<`、`&`）などとして読まれず、書かれた文字のまま表示される。例: `C++ <入門>` は `C\+\+ \<入門\>` と書く。
+- ほかの文字（英数字、空白、ASCII でない文字）は、そのまま書く。全角の記号（`＃`、`（` など）もそのまま書く。
+- テキストを並べるときの括弧や区切り（`（`、`）`、` / `）、見出し、箇条書きのハイフン、コロンなど、このルールが付ける文字にはエスケープを付けない。テキストを並べるときは、値ごとにエスケープしてから並べる。
+- 区分の名前（`対面（Onsite）` など）と数値は、このルールが決めた文字なので、エスケープしない。授業言語の言語タグ（表に無い言語）も、英数字とハイフンだけなので、そのまま書く。
+- 学修成果のリンクの文字（`targetName`）も、同じエスケープを付ける。例: `targetName` が `スキル標準 [第2版]` なら `[スキル標準 \[第2版\]](<https://example.org/skills/ds-1>)`。
+- URL は `<URL>` の形（Markdown の自動リンク）で書き、エスケープは付けない。自動リンクの中ではバックスラッシュエスケープが効かないためである。名前の後ろに続ける URL も、学修成果のリンク先も同じ。URL の中の `[`、`]`、`(`、`)` は、そのまま書く。URL に空白、`<`、`>` が無いことは、4 章の決まりで確かめている。
+- このパッケージでは、エスケープを `escapeMarkdown()` にまとめている。
 - この書き方で作った文章の例は、照合用データ（`test-vectors.json`）の「Markdown のエスケープが要る値」にある。
 
 数値（`learnerEffort` の `totalHours` と `contactHours`、`recognitions[].amount`）の書き方:
@@ -271,7 +288,9 @@ URL とリンクの書き方:
 確かめてあること:
 
 - このルールのコンテキストは、VC 2.0 と OB 3.0 のコンテキストと合わせて、JSON-LD の処理系で展開と正規化（署名の前処理）ができる。定義の無い項目名は、処理系が失敗として扱う。
-- 7 章の記載例と、照合用データの構造化データで組んだバッジは、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にある。OB 3.0 本体の JSON Schema は、1EdTech が公開しているものの写し（`tests/vendor/`）を、format の検証も含めて当てている（`tests/ob3-schema.test.ts`）。
+- 7 章の記載例と、照合用データの構造化データで組んだバッジは、OB 3.0 本体の JSON Schema と、このルールの JSON Schema の両方を通る。記載例は `examples/microcredential-badge.json` にあり、7 章の JSON と同じ内容である。OB 3.0 本体の JSON Schema は、1EdTech が公開しているものの写し（`tests/vendor/`）を、format の検証も含めて当てている（`tests/ob3-schema.test.ts`）。
+- `schema.json` と `validateBadge()`、プロファイルの JSON Schema と `validateMetadata()` は、テストで使う書き換えの例のすべてで同じ結果になる（5 章で挙げた、JSON Schema では確かめない決まりを除く）。
+- 照合用データ（`test-vectors.json`）の構造化データは、どれも JSON-LD の処理系で展開できる。照合用データには、4 章のすべての項目（URL の項目と、`alignment` の 7 項目を含む）が入っている。
 
 ## 参考
 

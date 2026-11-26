@@ -98,6 +98,112 @@ const descriptorCases: [name: string, change: (d: Json) => void, valid: boolean]
       }),
     true,
   ],
+  [
+    "学修成果の alignment に OB 3.0 の 7 項目をすべて書く",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "スキル標準",
+        targetUrl: "https://example.org/skills/1",
+        targetCode: "DS-1",
+        targetDescription: "データ分析の基礎",
+        targetFramework: "サンプルスキル標準",
+        targetType: "ceasn:Competency",
+      }),
+    true,
+  ],
+  [
+    "学修成果の alignment に決まりに無い項目",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "a",
+        targetUrl: "https://e.org/a",
+        foo: "x",
+      }),
+    false,
+  ],
+  [
+    "学修成果の alignment に targetName が無い",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetUrl: "https://e.org/a",
+      }),
+    false,
+  ],
+  [
+    "学修成果の説明に、改行と見出しの形の行",
+    (d) =>
+      (d.learningOutcomes[0].description = {
+        ja: "a\n\n評価の方法 (Type of assessment):\n- 試験（Exam）",
+      }),
+    false,
+  ],
+  ["学修成果の説明が空白だけ", (d) => (d.learningOutcomes[0].description = { ja: "   " }), false],
+  ["学修成果の説明が全角の空白だけ", (d) => (d.learningOutcomes[0].description = { ja: "\u3000" }), false],
+  ["学修成果の説明が空文字", (d) => (d.learningOutcomes[0].description = { ja: "" }), false],
+  ["テキストにタブ", (d) => (d.certification = { ja: "修了証\tデジタル" }), false],
+  ["テキストに CR", (d) => (d.certification = { ja: "修了証\r" }), false],
+  ["テキストに C1 制御文字（NEL）", (d) => (d.certification = { ja: "修了証\u0085" }), false],
+  ["テキストに行区切り（U+2028）", (d) => (d.certification = { ja: "修了証\u2028x" }), false],
+  ["テキストの前後に空白", (d) => (d.certification = { ja: " 修了証 " }), true],
+  [
+    "テキストに Markdown と HTML の記号",
+    (d) => (d.certification = { ja: "# 修了証 *x* <b>y</b> [z](https://e.org)" }),
+    true,
+  ],
+  [
+    "レベルの枠組みの名前に改行",
+    (d) => (d.levels = [{ framework: "a\nb", value: "c" }]),
+    false,
+  ],
+  ["レベルの値が空白だけ", (d) => (d.levels = [{ framework: "EQF", value: " " }]), false],
+  [
+    "認定の制度名に改行",
+    (d) => (d.recognitions = [{ kind: "credit", scheme: "UCTS\n- x", amount: 2 }]),
+    false,
+  ],
+  [
+    "学修成果の alignment の targetName に改行",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "スキル標準\n\n# x",
+        targetUrl: "https://example.org/skills/1",
+      }),
+    false,
+  ],
+  [
+    "学修成果の alignment の targetCode が空白だけ",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "スキル標準",
+        targetUrl: "https://example.org/skills/1",
+        targetCode: " ",
+      }),
+    false,
+  ],
+  ["レベルが空の配列", (d) => (d.levels = []), false],
+  ["外部質保証が空の配列", (d) => (d.qualityAssurance.external = []), false],
+  ["前提条件が空の配列", (d) => (d.prerequisites = []), false],
+  ["授業言語が空の配列", (d) => (d.languages = []), false],
+  ["授業の方法に決まりに無い項目", (d) => (d.participation.foo = "x"), false],
+  ["内部質保証に決まりに無い項目", (d) => (d.qualityAssurance.internal.foo = "x"), false],
+  ["認定に決まりに無い項目", (d) => (d.recognitions[0].foo = "x"), false],
+  ["学修成果に決まりに無い項目", (d) => (d.learningOutcomes[0].foo = "x"), false],
+  ["授業時間が負", (d) => (d.learnerEffort.contactHours = -1), false],
+  [
+    "認定の数が 0",
+    (d) => (d.recognitions = [{ kind: "credit", scheme: "UCTS", amount: 0 }]),
+    false,
+  ],
+  ["授業の方法が語彙に無い値", (d) => (d.participation.mode = "remote"), false],
+  ["同期・非同期が語彙に無い値", (d) => (d.participation.timing = "live"), false],
+  ["評価の方法が語彙に無い値", (d) => (d.assessments[0].method = "interview"), false],
+  ["認定の種類が語彙に無い値", (d) => (d.recognitions[0].kind = "badge"), false],
+  ["証明書の値が空文字", (d) => (d.certification = { ja: "" }), false],
   ["総学習時間が 10 時間未満", (d) => (d.learnerEffort.totalHours = 5), false],
   ["決まりに無い項目名", (d) => (d.learnerEffort.totalHour = 90), false],
   ["言語タグの書式に合わない", (d) => (d.languages = ["日本語"]), false],
@@ -296,6 +402,27 @@ const badgeCases: [name: string, change: (b: Json) => void, valid: boolean][] = 
     true,
   ],
   ["alignment が空", (b) => (b.credentialSubject.achievement.alignment = []), false],
+  [
+    "alignment の targetName に改行",
+    (b) => (b.credentialSubject.achievement.alignment[0].targetName = "Framework\nv1.0"),
+    false,
+  ],
+  [
+    "alignment に決まりに無い項目",
+    (b) => (b.credentialSubject.achievement.alignment[0].foo = "x"),
+    false,
+  ],
+  [
+    "alignment に OB 3.0 の 7 項目をすべて書く",
+    (b) =>
+      Object.assign(b.credentialSubject.achievement.alignment[0], {
+        targetCode: "MC-1.0",
+        targetDescription: "マイクロクレデンシャルのフレームワーク",
+        targetFramework: "マイクロクレデンシャルのフレームワーク",
+        targetType: "CTDL",
+      }),
+    true,
+  ],
   [
     "criteria.narrative が無い",
     (b) => delete b.credentialSubject.achievement.criteria.narrative,
