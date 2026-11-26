@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  HTTP_URL_PATTERN,
   completionCertificateProfile,
   euMicrocredentialProfile,
   microCredentialProfile,
@@ -11,6 +12,7 @@ import {
   minimalDescriptors,
   validCompletionCertificate,
   validDescriptors,
+  unsafeUrlDescriptors,
   validEuMicrocredential,
 } from "./fixtures.ts";
 
@@ -85,6 +87,70 @@ describe("microcredential（記述子の構造化データ）", () => {
       certification: { 日本語: "修了証をデジタル発行" },
     });
     expect(result.success).toBe(false);
+  });
+
+  describe("URL", () => {
+    it.each(unsafeUrlDescriptors)("%s を落とす", (_, descriptors) => {
+      expect(validate(descriptors).success).toBe(false);
+    });
+
+    const withUrl = (url: string): unknown => ({
+      ...validDescriptors,
+      levels: [{ framework: "EQF", value: "6", url }],
+    });
+
+    it.each([
+      "https://example.org/eqf/6",
+      "http://example.org/eqf/6",
+      "https://example.org/skills/(v2)/[ds-1]?q=a&b=c#x",
+      "https://例え.jp/パス",
+    ])("http と https の URL を通す: %s", (url) => {
+      expect(validate(withUrl(url)).success).toBe(true);
+    });
+
+    it.each([
+      "javascript:alert(1)",
+      "data:text/html,x",
+      "ftp://example.org/x",
+      "HTTPS://example.org/x",
+      "//example.org/x",
+      "https://",
+      "https://example.org/a b",
+      "https://example.org/x\n",
+      " https://example.org/x",
+      "https://example.org/<x>",
+      "https://example.org/a\\b",
+    ])("使えないスキームや文字を含む URL を落とす: %j", (url) => {
+      const result = validate(withUrl(url));
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.issues[0]?.path).toEqual(["levels", 0, "url"]);
+    });
+
+    it("値を書き換えずに返す", () => {
+      const result = validate(withUrl("https://example.org/eqf/6"));
+      expect(result.success && result.data.levels?.[0]?.url).toBe("https://example.org/eqf/6");
+    });
+
+    it.each([
+      ["qualityAssurance.external", { qualityAssurance: { internal: { name: { ja: "審査" } }, external: [{ name: { ja: "認証" }, url: "javascript:x" }] } }],
+      ["prerequisites", { prerequisites: [{ description: { ja: "統計学" }, url: "javascript:x" }] }],
+      ["stackableInto", { stackableInto: [{ name: { ja: "積み上げ先" }, url: "javascript:x" }] }],
+    ])("%s の URL も同じ決まりで確かめる", (_, change) => {
+      expect(validate({ ...validDescriptors, ...change }).success).toBe(false);
+    });
+
+    it("JSON Schema の URL の項目すべてに、スキームを限る pattern を出す", () => {
+      const urls: unknown[] = [];
+      const walk = (node: unknown): void => {
+        if (typeof node !== "object" || node === null) return;
+        if ("format" in node && node.format === "uri") urls.push(node);
+        Object.values(node).forEach(walk);
+      };
+      walk(toJsonSchema(microCredentialProfile));
+      // targetUrl、qualityAssurance の internal と external、levels、prerequisites、stackableInto
+      expect(urls).toHaveLength(6);
+      for (const url of urls) expect(url).toMatchObject({ pattern: HTTP_URL_PATTERN.source });
+    });
   });
 
   describe("単位／その他の認定", () => {

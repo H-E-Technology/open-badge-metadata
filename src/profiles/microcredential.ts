@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { AssessmentMethod, LanguageTag, LocalizedText, ParticipationMode } from "../common.ts";
+import {
+  AssessmentMethod,
+  HttpUrl,
+  LanguageTag,
+  LocalizedText,
+  ParticipationMode,
+} from "../common.ts";
 import { defineProfile, type ProfileMetadata } from "../profile.ts";
 
 /**
@@ -23,7 +29,7 @@ export const Alignment = z.looseObject({
     message: "type に Alignment を含めてください",
   }),
   targetName: z.string().min(1),
-  targetUrl: z.url(),
+  targetUrl: HttpUrl,
   targetCode: z.string().min(1).optional(),
   targetDescription: z.string().min(1).optional(),
   targetFramework: z.string().min(1).optional(),
@@ -41,7 +47,7 @@ export type RecognitionKind = z.infer<typeof RecognitionKind>;
 /** 名前と、任意の URL */
 const NamedReference = z.strictObject({
   name: LocalizedText,
-  url: z.url().optional(),
+  url: HttpUrl.optional(),
 });
 
 /**
@@ -106,7 +112,7 @@ export const MicroCredentialDescriptors = z.strictObject({
         framework: z.string().min(1),
         /** その枠組みでの値 */
         value: z.string().min(1),
-        url: z.url().optional(),
+        url: HttpUrl.optional(),
       }),
     )
     .min(1)
@@ -141,7 +147,7 @@ export const MicroCredentialDescriptors = z.strictObject({
     .array(
       z.strictObject({
         description: LocalizedText,
-        url: z.url().optional(),
+        url: HttpUrl.optional(),
       }),
     )
     .min(1)
