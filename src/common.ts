@@ -55,11 +55,35 @@ export const HttpUrl = z
   .meta({ format: "uri" })
   .describe("http か https の URL");
 
+/**
+ * 組織の識別子に使える形。スキームは http、https、did、urn だけ（小文字）。
+ * - `http://`、`https://`: 組織の Web ページなどの URL
+ * - `did:<メソッド名>:`: OB 3.0 の発行者で使われる DID（メソッド名は小文字の英数字）
+ * - `urn:<名前空間>:`: 法人番号などの URN（名前空間は英数字とハイフンで 32 文字まで）
+ * 空白、制御文字、`<`、`>`、`\` は使えない。
+ */
+export const ORGANIZATION_ID_PATTERN =
+  /^(?:https?:\/\/|did:[a-z0-9]+:|urn:[A-Za-z0-9][A-Za-z0-9-]{0,31}:)[^\s\x00-\x1f\x7f<>\\]+$/;
+
+/**
+ * 組織の識別子（URL、DID、URN）。`javascript:` や `data:` などは使えない。
+ * z.url() は前後の空白などを取り除いた値を返すので使わず、値は書き換えずに判定する。
+ */
+export const OrganizationId = z
+  .string()
+  .regex(
+    ORGANIZATION_ID_PATTERN,
+    "http か https の URL、did: の DID、urn: の URN で書いてください（空白、< > \\ は使えません）",
+  )
+  .refine((v) => URL.canParse(v), { message: "URI として読めません" })
+  .meta({ format: "uri" })
+  .describe("組織の識別子（http か https の URL、did: の DID、urn: の URN）");
+
 /** 組織 */
 export const Organization = z.object({
   name: LocalizedText,
-  /** 組織の URL や法人番号の URI など */
-  id: z.url().optional(),
+  /** 組織の識別子。許す形は OrganizationId を参照 */
+  id: OrganizationId.optional(),
   country: CountryCode.optional(),
 });
 export type Organization = z.infer<typeof Organization>;

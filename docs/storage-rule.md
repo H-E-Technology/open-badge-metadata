@@ -57,6 +57,7 @@
 - 表に無い項目名は使えない。項目名の打ち間違いを検証で見つけるためである。
 - 選択の配列は、値が無ければ項目ごと省く。空の配列は使えない。
 - URL の項目（`alignment.targetUrl`、`qualityAssurance` の `url`、`levels[].url`、`prerequisites[].url`、`stackableInto[].url`）は、スキームが `http` か `https`（小文字）の URL に限る。`javascript:` や `data:` などは使えない。空白、制御文字、`<`、`>`、`\` も使えない。`criteria.narrative` は Markdown として表示されるので、押せるリンクになる URL を限り、6 章の `<URL>` の形で途中が切れないようにするためである。JSON Schema では `pattern` で同じ決まりを確かめる。
+- このルールの記述子ではないが、ほかのプロファイルの組織の識別子（`eu-microcredential` の `awardingBody[].id` と `qualityAssurance.body.id`、`completion-certificate` の `provider.id`）は、スキームが `http`、`https`、`did`、`urn`（小文字）のものに限る。`did:` は OB 3.0 の発行者で使われる DID（`did:<メソッド名>:…`、メソッド名は小文字の英数字）、`urn:` は法人番号などの URN（`urn:<名前空間>:…`）に使う。`javascript:` や `data:` などは使えず、空白、制御文字、`<`、`>`、`\` も使えない。値は書き換えずに確かめ、JSON Schema では `pattern` で同じ決まりを確かめる。
 - `learnerEffort.totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。上限（学位課程 1 年分）は時間数で決まっていないので、検証しない。
 - `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件だけ入れる。ほかの認定とは並べず、`scheme` と `amount` は書かない。
 - 言語タグは大文字小文字を区別しない（BCP 47）。テキストに、大文字小文字を無視して同じになるキー（`ja` と `JA` など）を並べてはいけない。同じ言語のどちらを表示するかが決まらないためである。
