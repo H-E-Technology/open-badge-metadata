@@ -139,7 +139,7 @@ const full: NarrativeTestVector = {
     stackableInto: [{ name: { ja: "データサイエンス・マイクロクレデンシャル" } }],
   },
   narrative: `学修成果 (Learning Outcomes):
-- 統計手法を適用する（Apply statistical methods） [サンプルスキル標準 データ分析 1](https://example.org/skills/ds-1)
+- 統計手法を適用する（Apply statistical methods） [サンプルスキル標準 データ分析 1](<https://example.org/skills/ds-1>)
 
 授業言語 (Language):
 日本語（Japanese）、英語（English）、fr
@@ -156,11 +156,11 @@ const full: NarrativeTestVector = {
 - プロジェクト・成果物（Project）: 最終成果物を提出する
 
 質保証 (Type of quality assurance):
-- 内部質保証（Internal）: 質保証委員会による審査 https://example.ac.jp/qa
+- 内部質保証（Internal）: 質保証委員会による審査 <https://example.ac.jp/qa>
 - 外部質保証（External）: サンプル認証機構の認証
 
 レベル (Level):
-- EQF: 6 https://example.org/eqf/6
+- EQF: 6 <https://example.org/eqf/6>
 
 証明書 (Certification):
 修了証をデジタル発行（Certificate issued digitally）
@@ -170,10 +170,64 @@ const full: NarrativeTestVector = {
 - その他の認定（Other recognition）: 業界団体による認定
 
 (受講)前提条件 (Prerequisites needed to enroll):
-- 統計学の基礎知識 https://example.ac.jp/courses/stat-101
+- 統計学の基礎知識 <https://example.ac.jp/courses/stat-101>
 
 積み上げ可能性 (Stackability):
 - データサイエンス・マイクロクレデンシャル`,
 };
 
-export const narrativeTestVectors: readonly NarrativeTestVector[] = [example, minimal, full];
+/**
+ * Markdown のエスケープが要る値。
+ * リンクの文字の `\`、`[`、`]` には `\` を付け、URL は `<URL>` の形で入れる。
+ * URL の中の括弧や角括弧は、そのまま残る。
+ */
+const escaping: NarrativeTestVector = {
+  name: "Markdown のエスケープが要る値",
+  descriptors: {
+    type: ["MicroCredentialDescriptors"],
+    learningOutcomes: [
+      {
+        description: { ja: "表形式のデータを集計できる" },
+        alignment: {
+          type: ["Alignment"],
+          targetName: "スキル標準 [第2版] 集計\\分析",
+          targetUrl: "https://example.org/skills/(v2)/[ds-1]",
+        },
+      },
+    ],
+    participation: { mode: "onsite" },
+    learnerEffort: { totalHours: 10 },
+    assessments: [{ method: "exam" }],
+    qualityAssurance: {
+      internal: {
+        name: { ja: "教務委員会による審査" },
+        url: "https://example.ac.jp/qa/[x](y)",
+      },
+    },
+    recognitions: [{ kind: "none" }],
+  },
+  narrative: `学修成果 (Learning Outcomes):
+- 表形式のデータを集計できる [スキル標準 \\[第2版\\] 集計\\\\分析](<https://example.org/skills/(v2)/[ds-1]>)
+
+授業の方法 (Form of participation):
+対面（Onsite）
+
+学習量（総学習時間） (Learner effort):
+10 時間（10 hours）
+
+評価の方法 (Type of assessment):
+- 試験（Exam）
+
+質保証 (Type of quality assurance):
+- 内部質保証（Internal）: 教務委員会による審査 <https://example.ac.jp/qa/[x](y)>
+
+単位/その他認定 (Credit/Other recognition):
+- なし（None）`,
+};
+
+export const narrativeTestVectors: readonly NarrativeTestVector[] = [
+  example,
+  minimal,
+  full,
+  escaping,
+];

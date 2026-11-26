@@ -44,7 +44,12 @@ export function validateMetadata<P extends ProfileDefinition>(
     : { success: false, issues: result.error.issues };
 }
 
-/** プロファイルの JSON Schema（Draft 2020-12）。TypeScript 以外（Flutter など）から使う */
+/**
+ * プロファイルの JSON Schema（Draft 2020-12）。TypeScript 以外（Flutter など）から使う。
+ *
+ * zod の refine は JSON Schema に出ないので、プロファイルの側で、同じ決まりを .meta() に
+ * JSON Schema の書き方で添えておく。書けない決まりは、そのスキーマの説明に残す。
+ */
 export function toJsonSchema(profile: ProfileDefinition): Record<string, unknown> {
   return {
     $id: `https://github.com/H-E-Technology/open-badge-metadata/schemas/${profile.id}/${profile.version}.json`,

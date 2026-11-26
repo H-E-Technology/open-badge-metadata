@@ -21,6 +21,41 @@ export const validDescriptorsNarrative: string = vector("記載例").narrative;
 /** 必須の記述子だけを持つ構造化データ */
 export const minimalDescriptors: MicroCredentialDescriptors = vector("必須の記述子だけ").descriptors;
 
+/**
+ * http と https 以外のスキームの URL を入れた構造化データ。
+ * どれも検証で落ちなければならない。
+ */
+export const unsafeUrlDescriptors: ReadonlyArray<readonly [name: string, descriptors: unknown]> = [
+  [
+    "学修成果の alignment に javascript: の URL",
+    {
+      ...minimalDescriptors,
+      learningOutcomes: [
+        {
+          description: { ja: "表形式のデータを集計できる" },
+          alignment: {
+            type: ["Alignment"],
+            targetName: "x](javascript:alert(1))",
+            targetUrl: "javascript:alert(1)",
+          },
+        },
+      ],
+    },
+  ],
+  [
+    "内部質保証に data: の URL",
+    {
+      ...minimalDescriptors,
+      qualityAssurance: {
+        internal: {
+          name: { ja: "教務委員会による審査" },
+          url: "data:text/html,<script>alert(1)</script>",
+        },
+      },
+    },
+  ],
+];
+
 export const validEuMicrocredential: EuMicrocredentialMetadata = {
   learner: { name: "山田 花子", identifier: "sha256$0f1e2d3c" },
   title: { ja: "データ分析入門", en: "Introduction to Data Analysis" },

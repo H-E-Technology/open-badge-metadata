@@ -8,7 +8,9 @@ import {
   toCredentialJsonSchema,
   toCriteriaNarrative,
   validateBadge,
+  type MicroCredentialDescriptors,
 } from "../src/index.ts";
+import { unsafeUrlDescriptors } from "./fixtures.ts";
 
 /** 記載例の写しを作り、一部を書き換える */
 const withChange = (change: (badge: typeof exampleBadge) => void): unknown => {
@@ -16,6 +18,16 @@ const withChange = (change: (badge: typeof exampleBadge) => void): unknown => {
   change(copy);
   return copy;
 };
+
+/** 記載例の構造化データを差し替え、文章もそれに合わせて作り直す */
+const withDescriptors = (descriptors: unknown): unknown =>
+  withChange((b) => {
+    const achievement = b.credentialSubject.achievement as Record<string, unknown>;
+    achievement.microCredentialDescriptors = descriptors;
+    achievement.criteria = {
+      narrative: toCriteriaNarrative(descriptors as MicroCredentialDescriptors),
+    };
+  });
 
 /** 落ちた項目の場所を、ドットでつないだ文字列にする */
 const failedPaths = (input: unknown): string[] => {
@@ -123,6 +135,46 @@ describe("validateBadge", () => {
       "credentialSubject.achievement.microCredentialDescriptors.learnerEffort.totalHours",
       "credentialSubject.achievement.microCredentialDescriptors.learnerEffort.contactHours",
     ]);
+  });
+});
+
+describe("URL のスキーム", () => {
+  const validate = new Ajv2019({ strict: false, validateFormats: false }).compile(
+    toCredentialJsonSchema(),
+  );
+
+  it.each(unsafeUrlDescriptors)(
+    "%s のバッジを、validateBadge と JSON Schema の両方で落とす",
+    (_, descriptors) => {
+      const badge = withDescriptors(descriptors);
+      expect(validateBadge(badge).success).toBe(false);
+      expect(validate(badge)).toBe(false);
+    },
+  );
+
+  it("同じ形で https の URL なら、validateBadge と JSON Schema の両方を通す", () => {
+    for (const [, descriptors] of unsafeUrlDescriptors) {
+      const safe = JSON.parse(
+        JSON.stringify(descriptors)
+          .replaceAll("javascript:alert(1)", "https://example.org/skills/ds-1")
+          .replace("data:text/html,<script>alert(1)</script>", "https://example.ac.jp/qa"),
+      ) as unknown;
+      const badge = withDescriptors(safe);
+      const result = validateBadge(badge);
+      expect(result.success ? [] : result.issues).toEqual([]);
+      expect(validate(badge)).toBe(true);
+    }
+  });
+
+  it("achievement.alignment の URL も http と https に限る", () => {
+    const wrong = withChange((b) => {
+      b.credentialSubject.achievement.alignment.push({
+        type: ["Alignment"],
+        targetName: "x",
+        targetUrl: "javascript:alert(1)",
+      });
+    });
+    expect(failedPaths(wrong)).toEqual(["credentialSubject.achievement.alignment.1.targetUrl"]);
   });
 });
 

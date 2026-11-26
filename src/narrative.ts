@@ -101,8 +101,18 @@ export function renderText(text: LocalizedText): string {
   return rest.length > 0 ? `${main}（${rest.join(" / ")}）` : main;
 }
 
+/**
+ * URL を本文に入れるときは `<URL>` の形にする（Markdown の自動リンク）。
+ * URL の中の `[` `]` `(` `)` が Markdown のリンクとして読まれないようにするため。
+ * URL に空白や `<` `>` が無いことは、検証（HttpUrl）で確かめている。
+ */
+const autolink = (url: string): string => `<${url}>`;
+
 const withUrl = (text: string, url: string | undefined): string =>
-  url === undefined ? text : `${text} ${url}`;
+  url === undefined ? text : `${text} ${autolink(url)}`;
+
+/** Markdown のリンクの文字に入れるため、`\`、`[`、`]` の前に `\` を付ける */
+const escapeLinkText = (text: string): string => text.replace(/[\\[\]]/g, "\\$&");
 
 const hours = (n: number): string => (n === 1 ? "hour" : "hours");
 
@@ -142,7 +152,7 @@ export function toCriteriaNarrative(d: MicroCredentialDescriptors): string {
         const text = renderText(o.description);
         return o.alignment === undefined
           ? `- ${text}`
-          : `- ${text} [${o.alignment.targetName}](${o.alignment.targetUrl})`;
+          : `- ${text} [${escapeLinkText(o.alignment.targetName)}](${autolink(o.alignment.targetUrl)})`;
       }),
     ],
     [
