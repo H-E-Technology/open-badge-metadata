@@ -463,7 +463,8 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 ]
 ```
 
-`extensions.json` は、`credentialSchema` の `type` を定義するコンテキスト
+- `@context` は VC 2.0、OB 3.0 の順で始める。後ろの 2 つの順は問わない
+- `extensions.json` は、`credentialSchema` の `type` を定義するコンテキスト
 
 ---
 

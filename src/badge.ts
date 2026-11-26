@@ -61,6 +61,7 @@ export const MicroCredentialBadge = z
       }),
   })
   .superRefine((badge, ctx) => {
+    // 1 番目と 2 番目は位置で確かめる。拡張用とこのルールのコンテキストは、3 番目以降のどこかにあればよい
     const contexts = badge["@context"];
     if (contexts[0] !== VC_CONTEXT_URL) {
       ctx.addIssue({
@@ -76,18 +77,19 @@ export const MicroCredentialBadge = z
         message: "@context の 2 番目は Open Badges 3.0 のコンテキストにしてください",
       });
     }
-    if (!contexts.includes(OB_EXTENSIONS_CONTEXT_URL)) {
+    const rest = contexts.slice(2);
+    if (!rest.includes(OB_EXTENSIONS_CONTEXT_URL)) {
       ctx.addIssue({
         code: "custom",
         path: ["@context"],
-        message: `@context に、credentialSchema の type を定義する ${OB_EXTENSIONS_CONTEXT_URL} を入れてください`,
+        message: `@context の 3 番目以降に、credentialSchema の type を定義する ${OB_EXTENSIONS_CONTEXT_URL} を入れてください`,
       });
     }
-    if (!contexts.includes(CONTEXT_URL)) {
+    if (!rest.includes(CONTEXT_URL)) {
       ctx.addIssue({
         code: "custom",
         path: ["@context"],
-        message: `@context に、このルールのコンテキスト ${CONTEXT_URL} を入れてください`,
+        message: `@context の 3 番目以降に、このルールのコンテキスト ${CONTEXT_URL} を入れてください`,
       });
     }
 
@@ -98,7 +100,7 @@ export const MicroCredentialBadge = z
       ctx.addIssue({
         code: "custom",
         path: ["type"],
-        message: "type に VerifiableCredential と OpenBadgeCredential を入れてください",
+        message: "type に VerifiableCredential と、OpenBadgeCredential（または AchievementCredential）を入れてください",
       });
     }
 
@@ -191,7 +193,9 @@ export function toCredentialJsonSchema(): Record<string, unknown> {
       "@context": {
         type: "array",
         minItems: 1,
-        // 1 番目は VC 2.0、2 番目は OB 3.0 のコンテキスト（Draft 2019-09 の、配列で書く items）
+        // 1 番目は VC 2.0、2 番目は OB 3.0 のコンテキスト（Draft 2019-09 の、配列で書く items）。
+        // 拡張用とこのルールのコンテキストは、どちらも 1 番目と 2 番目の値にはなり得ないので、
+        // contains で 3 番目以降のどこかにあることを確かめられる。2 つの順は問わない
         items: [
           { const: VC_CONTEXT_URL },
           { type: "string", pattern: OB_CONTEXT_URL_PATTERN.source },

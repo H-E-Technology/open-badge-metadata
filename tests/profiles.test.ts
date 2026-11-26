@@ -6,6 +6,8 @@ import {
   completionCertificateProfile,
   euMicrocredentialProfile,
   microCredentialProfile,
+  RULE_BASE_URL,
+  profileSchemaUrl,
   profiles,
   toJsonSchema,
   validateMetadata,
@@ -330,6 +332,15 @@ describe("JSON Schema", () => {
     expect(schema.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(schema.type).toBe("object");
   });
+
+  it.each(profiles.map((p) => [p.id, p] as const))(
+    "%s の JSON Schema の $id は、RULE_BASE_URL の下の schemas/<id>/<版>.json",
+    (_, profile) => {
+      const schema = toJsonSchema(profile);
+      expect(schema.$id).toBe(profileSchemaUrl(profile));
+      expect(schema.$id).toBe(`${RULE_BASE_URL}/schemas/${profile.id}/${profile.version}.json`);
+    },
+  );
 
   describe("microcredential の項目どうしの関係と重複", () => {
     const validateJson = new Ajv2020({ strict: false, validateFormats: false }).compile(

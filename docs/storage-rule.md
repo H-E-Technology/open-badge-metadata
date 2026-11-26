@@ -87,7 +87,7 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 - `credentialSchema` に、このルールの JSON Schema の URL を足す。`type` は、OB 3.0 の仕様が定める `1EdTechJsonSchemaValidator2019` にする。
 - `@context` に、OB 3.0 の拡張用コンテキスト `https://purl.imsglobal.org/spec/ob/v3p0/extensions.json` も足す。`1EdTechJsonSchemaValidator2019` という値はこのコンテキストで定義されていて、無いと署名の前処理（JSON-LD としての処理）で失敗する。
 
-`@context` の並びは、VC 2.0、OB 3.0、OB 3.0 の拡張用、このルール、の順にする。
+`@context` の 1 番目は VC 2.0、2 番目は OB 3.0 のコンテキストにする。OB 3.0 の拡張用とこのルールのコンテキストは、3 番目以降のどこかに含める。2 つの順は問わず、間にほかのコンテキストがあってもよい。7 章の記載例は、VC 2.0、OB 3.0、OB 3.0 の拡張用、このルール、の順にしている。
 
 受け取る側は、`@context` にこのルールの URL があるかどうかで、構造化データを読めるバッジかを判断できる。版は URL に含める。
 
@@ -115,6 +115,14 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 - 公開した版のファイルは書き換えない。項目や語彙を変えるときは、版を上げて別の URL にする。
 
 今の URL は、試すための置き場所（GitHub Pages の `draft/` の下）を指している。3 つのファイルは `https://h-e-technology.github.io/open-badge-metadata/draft/microcredential/v1/` の下で配信している。ここに置いたファイルは書き換えることがある。本番の URL は未決である。
+
+### プロファイルの JSON Schema の置き場所
+
+構造化データだけに当てるプロファイルの JSON Schema（パッケージの `dist/schemas/<id>.json`）も、上の 3 つのファイルと同じ公開先の下に置く。
+
+- `$id` は `<公開先>/schemas/<プロファイルの id>/<プロファイルの版>.json` にする。`<公開先>` は `RULE_BASE_URL`（`src/rule.ts`）で、今は `https://h-e-technology.github.io/open-badge-metadata/draft` である。例: `https://h-e-technology.github.io/open-badge-metadata/draft/schemas/microcredential/0.1.0.json`
+- `$id` の URL でファイルを開けるように、GitHub Pages にも同じ並びで置く（`scripts/build-site.ts`）。
+- プロファイルの版を上げると、`$id` も別の URL になる。公開先が決まって `RULE_BASE_URL` を差し替えると、`$id` もそれに合わせて変わる。
 
 ## 6. `criteria.narrative` の作り方
 
@@ -256,7 +264,7 @@ URL とリンクの書き方:
 - `criteria.narrative` が、構造化データから 6 章の書式で作った文章と一致する。
 - `achievementType` が `MicroCredential` で、`alignment` にフレームワークが入っている（ガイドライン 3.0 の求め）。
 - ガイドライン 3.0 が必須とする OB 3.0 本体の項目（発行機関の名前、発行日、学習者を識別する情報、名称、内容）が入っている。
-- `@context` と `credentialSchema` が、5 章のとおりに入っている。
+- `@context` と `credentialSchema` が、5 章のとおりに入っている。`@context` は、1 番目と 2 番目を位置で、拡張用とこのルールのコンテキストを 3 番目以降に含まれているかで確かめる。
 
 このパッケージの `validateBadge()` が、上の 5 つを確かめる。`schema.json` は、このうち文章との一致のほかを、JSON Schema で書けるかぎり確かめる（5 章）。署名と、OB 3.0 本体の項目の細かい形は確かめない。
 
