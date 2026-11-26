@@ -6,6 +6,7 @@ import {
   LanguageTag,
   LocalizedText,
   ParticipationMode,
+  TextValue,
 } from "../common.ts";
 import { defineProfile, type ProfileMetadata } from "../profile.ts";
 
@@ -41,12 +42,12 @@ export const Alignment = z.strictObject({
     .array(z.string())
     .refine((t) => t.includes("Alignment"), { message: "type に Alignment を含めてください" })
     .meta({ contains: { const: "Alignment" } }),
-  targetName: z.string().min(1),
+  targetName: TextValue,
   targetUrl: HttpUrl,
-  targetCode: z.string().min(1).optional(),
-  targetDescription: z.string().min(1).optional(),
-  targetFramework: z.string().min(1).optional(),
-  targetType: z.string().min(1).optional(),
+  targetCode: TextValue.optional(),
+  targetDescription: TextValue.optional(),
+  targetFramework: TextValue.optional(),
+  targetType: TextValue.optional(),
 });
 
 /** 同期型か非同期型か */
@@ -159,9 +160,9 @@ export const MicroCredentialDescriptors = z.strictObject({
     .array(
       z.strictObject({
         /** 枠組みの名前 */
-        framework: z.string().min(1),
+        framework: TextValue,
         /** その枠組みでの値 */
-        value: z.string().min(1),
+        value: TextValue,
         url: HttpUrl.optional(),
       }),
     )
@@ -177,7 +178,7 @@ export const MicroCredentialDescriptors = z.strictObject({
       z.strictObject({
         kind: RecognitionKind,
         /** 単位やポイントの制度名。語彙は未決 */
-        scheme: z.string().min(1).optional(),
+        scheme: TextValue.optional(),
         amount: Quantity.positive().optional(),
         description: LocalizedText.optional(),
       }),

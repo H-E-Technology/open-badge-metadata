@@ -132,6 +132,59 @@ const descriptorCases: [name: string, change: (d: Json) => void, valid: boolean]
       }),
     false,
   ],
+  [
+    "学修成果の説明に、改行と見出しの形の行",
+    (d) =>
+      (d.learningOutcomes[0].description = {
+        ja: "a\n\n評価の方法 (Type of assessment):\n- 試験（Exam）",
+      }),
+    false,
+  ],
+  ["学修成果の説明が空白だけ", (d) => (d.learningOutcomes[0].description = { ja: "   " }), false],
+  ["学修成果の説明が全角の空白だけ", (d) => (d.learningOutcomes[0].description = { ja: "\u3000" }), false],
+  ["学修成果の説明が空文字", (d) => (d.learningOutcomes[0].description = { ja: "" }), false],
+  ["テキストにタブ", (d) => (d.certification = { ja: "修了証\tデジタル" }), false],
+  ["テキストに CR", (d) => (d.certification = { ja: "修了証\r" }), false],
+  ["テキストに C1 制御文字（NEL）", (d) => (d.certification = { ja: "修了証\u0085" }), false],
+  ["テキストに行区切り（U+2028）", (d) => (d.certification = { ja: "修了証\u2028x" }), false],
+  ["テキストの前後に空白", (d) => (d.certification = { ja: " 修了証 " }), true],
+  [
+    "テキストに Markdown と HTML の記号",
+    (d) => (d.certification = { ja: "# 修了証 *x* <b>y</b> [z](https://e.org)" }),
+    true,
+  ],
+  [
+    "レベルの枠組みの名前に改行",
+    (d) => (d.levels = [{ framework: "a\nb", value: "c" }]),
+    false,
+  ],
+  ["レベルの値が空白だけ", (d) => (d.levels = [{ framework: "EQF", value: " " }]), false],
+  [
+    "認定の制度名に改行",
+    (d) => (d.recognitions = [{ kind: "credit", scheme: "UCTS\n- x", amount: 2 }]),
+    false,
+  ],
+  [
+    "学修成果の alignment の targetName に改行",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "スキル標準\n\n# x",
+        targetUrl: "https://example.org/skills/1",
+      }),
+    false,
+  ],
+  [
+    "学修成果の alignment の targetCode が空白だけ",
+    (d) =>
+      (d.learningOutcomes[0].alignment = {
+        type: ["Alignment"],
+        targetName: "スキル標準",
+        targetUrl: "https://example.org/skills/1",
+        targetCode: " ",
+      }),
+    false,
+  ],
   ["総学習時間が 10 時間未満", (d) => (d.learnerEffort.totalHours = 5), false],
   ["決まりに無い項目名", (d) => (d.learnerEffort.totalHour = 90), false],
   ["言語タグの書式に合わない", (d) => (d.languages = ["日本語"]), false],
@@ -297,6 +350,11 @@ const badgeCases: [name: string, change: (b: Json) => void, valid: boolean][] = 
     true,
   ],
   ["alignment が空", (b) => (b.credentialSubject.achievement.alignment = []), false],
+  [
+    "alignment の targetName に改行",
+    (b) => (b.credentialSubject.achievement.alignment[0].targetName = "Framework\nv1.0"),
+    false,
+  ],
   [
     "alignment に決まりに無い項目",
     (b) => (b.credentialSubject.achievement.alignment[0].foo = "x"),

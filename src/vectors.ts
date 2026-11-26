@@ -186,7 +186,7 @@ const full: NarrativeTestVector = {
 
 /**
  * Markdown のエスケープが要る値。
- * リンクの文字の `\`、`[`、`]` には `\` を付け、URL は `<URL>` の形で入れる。
+ * テキストの値の ASCII の記号には `\` を付け、URL は `<URL>` の形で入れる。
  * URL の中の括弧や角括弧は、そのまま残る。
  */
 const escaping: NarrativeTestVector = {
@@ -202,6 +202,7 @@ const escaping: NarrativeTestVector = {
           targetUrl: "https://example.org/skills/(v2)/[ds-1]",
         },
       },
+      { description: { ja: "# 見出しの形 *強調* <b>HTML</b> &amp;", en: "1. C++ & `code`" } },
     ],
     participation: { mode: "onsite" },
     learnerEffort: { totalHours: 10 },
@@ -212,10 +213,13 @@ const escaping: NarrativeTestVector = {
         url: "https://example.ac.jp/qa/[x](y)",
       },
     },
+    levels: [{ framework: "e-Learning Level_1", value: "A+" }],
+    certification: { ja: "---" },
     recognitions: [{ kind: "none" }],
   },
   narrative: `学修成果 (Learning Outcomes):
 - 表形式のデータを集計できる [スキル標準 \\[第2版\\] 集計\\\\分析](<https://example.org/skills/(v2)/[ds-1]>)
+- \\# 見出しの形 \\*強調\\* \\<b\\>HTML\\<\\/b\\> \\&amp\\;（1\\. C\\+\\+ \\& \\\`code\\\`）
 
 授業の方法 (Form of participation):
 対面（Onsite）
@@ -228,6 +232,12 @@ const escaping: NarrativeTestVector = {
 
 質保証 (Type of quality assurance):
 - 内部質保証（Internal）: 教務委員会による審査 <https://example.ac.jp/qa/[x](y)>
+
+レベル (Level):
+- e\\-Learning Level\\_1: A\\+
+
+証明書 (Certification):
+\\-\\-\\-
 
 単位/その他認定 (Credit/Other recognition):
 - なし（None）`,

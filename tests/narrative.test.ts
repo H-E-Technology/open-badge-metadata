@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   NARRATIVE_HEADINGS,
+  escapeMarkdown,
   formatNumber,
   microCredentialProfile,
   narrativeTestVectors,
@@ -117,7 +118,7 @@ describe("toCriteriaNarrative", () => {
     };
 
     expect(toCriteriaNarrative(detailed)).toBe(`学修成果 (Learning Outcomes):
-- 統計手法を適用する（Apply statistical methods） [ITSS+ データサイエンス領域](<https://example.org/skills/ds-1>)
+- 統計手法を適用する（Apply statistical methods） [ITSS\\+ データサイエンス領域](<https://example.org/skills/ds-1>)
 
 授業言語 (Language):
 日本語（Japanese）、英語（English）、fr
@@ -161,7 +162,7 @@ describe("Markdown のエスケープ", () => {
 
   it("リンクの文字の ] と [ に \\ を付け、URL を <> で囲む", () => {
     expect(outcomeLine("x](https://evil.example/)", "https://example.org/a")).toBe(
-      "- 表形式のデータを集計できる [x\\](https://evil.example/)](<https://example.org/a>)",
+      "- 表形式のデータを集計できる [x\\]\\(https\\:\\/\\/evil\\.example\\/\\)](<https://example.org/a>)",
     );
     expect(outcomeLine("[第2版]", "https://example.org/a")).toBe(
       "- 表形式のデータを集計できる [\\[第2版\\]](<https://example.org/a>)",
@@ -188,6 +189,97 @@ describe("Markdown のエスケープ", () => {
       },
     });
     expect(narrative).toContain("- 内部質保証（Internal）: 審査 <https://example.ac.jp/[x](y)>");
+  });
+});
+
+describe("escapeMarkdown", () => {
+  it("ASCII の記号すべての前に \\ を付ける", () => {
+    const punctuation = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+    expect(escapeMarkdown(punctuation)).toBe(
+      [...punctuation].map((c) => `\\${c}`).join(""),
+    );
+  });
+
+  it("英数字、空白、ASCII でない文字はそのまま", () => {
+    expect(escapeMarkdown("aZ 09　統計（Ｃ＋＋）・＃")).toBe("aZ 09　統計（Ｃ＋＋）・＃");
+  });
+
+  it("見出し、箇条書き、HTML として読まれる形を崩す", () => {
+    expect(escapeMarkdown("# 見出し")).toBe("\\# 見出し");
+    expect(escapeMarkdown("1. 項目")).toBe("1\\. 項目");
+    expect(escapeMarkdown("<script>&amp;")).toBe("\\<script\\>\\&amp\\;");
+  });
+});
+
+describe("テキストの値を本文に入れる", () => {
+  const withValues = (overrides: Partial<MicroCredentialDescriptors>): string =>
+    toCriteriaNarrative({ ...minimalDescriptors, ...overrides });
+
+  it("値の中の記号は、どの記述子でもエスケープする", () => {
+    const narrative = withValues({
+      learningOutcomes: [
+        {
+          description: { ja: "# 統計", en: "*Stats*" },
+          alignment: {
+            type: ["Alignment"],
+            targetName: "<b>",
+            targetUrl: "https://example.org/a",
+          },
+        },
+      ],
+      participation: { mode: "onsite", description: { ja: "- 教室" } },
+      learnerEffort: { totalHours: 10, description: { ja: "=== 10" } },
+      assessments: [{ method: "exam", description: { ja: "`試験`" } }],
+      qualityAssurance: { internal: { name: { ja: "> 審査" } } },
+      levels: [{ framework: "1.", value: "_6_" }],
+      certification: { ja: "---" },
+      recognitions: [{ kind: "credit", scheme: "C++", amount: 2, description: { ja: "|a|" } }],
+      prerequisites: [{ description: { ja: "![x](y)" } }],
+      stackableInto: [{ name: { ja: "&lt;" } }],
+    });
+    expect(narrative).toBe(`学修成果 (Learning Outcomes):
+- \\# 統計（\\*Stats\\*） [\\<b\\>](<https://example.org/a>)
+
+授業の方法 (Form of participation):
+対面（Onsite）
+\\- 教室
+
+学習量（総学習時間） (Learner effort):
+10 時間（10 hours）
+\\=\\=\\= 10
+
+評価の方法 (Type of assessment):
+- 試験（Exam）: \\\`試験\\\`
+
+質保証 (Type of quality assurance):
+- 内部質保証（Internal）: \\> 審査
+
+レベル (Level):
+- 1\\.: \\_6\\_
+
+証明書 (Certification):
+\\-\\-\\-
+
+単位/その他認定 (Credit/Other recognition):
+- 単位（Credit）: C\\+\\+ 2、\\|a\\|
+
+(受講)前提条件 (Prerequisites needed to enroll):
+- \\!\\[x\\]\\(y\\)
+
+積み上げ可能性 (Stackability):
+- \\&lt\\;`);
+  });
+
+  it("検証を通る値からは、見出しの行と空行は増えない", () => {
+    const heading = `${NARRATIVE_HEADINGS.assessments}:`;
+    const descriptors = {
+      ...minimalDescriptors,
+      learningOutcomes: [{ description: { ja: `a ${heading} - 試験（Exam）` } }],
+    };
+    expect(validateMetadata(microCredentialProfile, descriptors).success).toBe(true);
+    const narrative = toCriteriaNarrative(descriptors);
+    expect(headingsOf(narrative)).toEqual(headingsOf(toCriteriaNarrative(minimalDescriptors)));
+    expect(narrative.split("\n").filter((line) => line === heading)).toHaveLength(1);
   });
 });
 
