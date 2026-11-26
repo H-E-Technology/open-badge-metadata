@@ -118,8 +118,10 @@ describe("validateBadge", () => {
     const wrong = withChange((b) => {
       b.credentialSubject.achievement.microCredentialDescriptors.learnerEffort.totalHours = 5;
     });
+    // 記載例の授業時間（30 時間）が総学習時間を超えるので、contactHours も落ちる
     expect(failedPaths(wrong)).toEqual([
       "credentialSubject.achievement.microCredentialDescriptors.learnerEffort.totalHours",
+      "credentialSubject.achievement.microCredentialDescriptors.learnerEffort.contactHours",
     ]);
   });
 });

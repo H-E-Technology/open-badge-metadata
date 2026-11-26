@@ -1,3 +1,4 @@
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import {
   completionCertificateProfile,
@@ -114,6 +115,50 @@ describe("microcredential（記述子の構造化データ）", () => {
       expect(validate({ ...validDescriptors, recognitions: [] }).success).toBe(false);
     });
   });
+
+  describe("項目どうしの関係と重複", () => {
+    it("授業時間が総学習時間を超えたら落とす", () => {
+      const result = validate({
+        ...validDescriptors,
+        learnerEffort: { totalHours: 10, contactHours: 500 },
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.issues[0]?.path).toEqual(["learnerEffort", "contactHours"]);
+    });
+
+    it("授業時間が総学習時間と同じなら通す", () => {
+      expect(
+        validate({ ...validDescriptors, learnerEffort: { totalHours: 10, contactHours: 10 } })
+          .success,
+      ).toBe(true);
+    });
+
+    it("授業言語が重なっていたら落とす", () => {
+      const result = validate({ ...validDescriptors, languages: ["ja", "ja"] });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.issues[0]?.path).toEqual(["languages"]);
+    });
+
+    it("授業言語が大文字小文字だけ違って重なっていたら落とす", () => {
+      expect(validate({ ...validDescriptors, languages: ["ja", "JA"] }).success).toBe(false);
+      expect(validate({ ...validDescriptors, languages: ["zh-Hant", "zh-hant"] }).success).toBe(
+        false,
+      );
+    });
+
+    it("テキストに大文字小文字だけ違うキーがあれば落とす", () => {
+      const result = validate({ ...validDescriptors, certification: { ja: "A", JA: "B" } });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.issues[0]?.path).toEqual(["certification"]);
+    });
+
+    it("テキストのキーは書かれたとおりに扱う", () => {
+      // 大文字を含むタグも、重ならなければ通す
+      expect(
+        validate({ ...validDescriptors, certification: { ja: "A", "zh-Hant": "B" } }).success,
+      ).toBe(true);
+    });
+  });
 });
 
 describe("eu-microcredential", () => {
@@ -162,6 +207,27 @@ describe("JSON Schema", () => {
     const schema = toJsonSchema(profile);
     expect(schema.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(schema.type).toBe("object");
+  });
+
+  describe("microcredential の項目どうしの関係と重複", () => {
+    const validateJson = new Ajv2020({ strict: false, validateFormats: false }).compile(
+      toJsonSchema(microCredentialProfile),
+    );
+
+    it("書かれたとおりに同じ授業言語の重複を落とす", () => {
+      expect(validateJson({ ...validDescriptors, languages: ["ja", "ja"] })).toBe(false);
+    });
+
+    // 次の 3 つは JSON Schema で書けないので、validateMetadata() だけが落とす
+    it.each([
+      ["授業時間が総学習時間を超える", { learnerEffort: { totalHours: 10, contactHours: 500 } }],
+      ["授業言語が大文字小文字だけ違って重なる", { languages: ["ja", "JA"] }],
+      ["テキストに大文字小文字だけ違うキーがある", { certification: { ja: "A", JA: "B" } }],
+    ])("%s値は確かめない", (_, change) => {
+      const input = { ...validDescriptors, ...change };
+      expect(validate(input).success).toBe(false);
+      expect(validateJson(input)).toBe(true);
+    });
   });
 
   it("プロファイル id が重複しない", () => {
