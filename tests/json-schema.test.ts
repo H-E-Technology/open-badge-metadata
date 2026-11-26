@@ -322,6 +322,70 @@ describe("ほかのプロファイルの JSON Schema", () => {
     expect(new Ajv2020(ajvOptions).compile(toJsonSchema(profile))(metadata)).toBe(true);
   });
 
+  describe("組織の識別子（Organization.id）", () => {
+    const withOrgId = [
+      [
+        "eu-microcredential の awardingBody",
+        euMicrocredentialProfile,
+        (id: string): unknown => ({
+          ...validEuMicrocredential,
+          awardingBody: [{ name: { ja: "サンプル大学" }, id }],
+        }),
+      ],
+      [
+        "eu-microcredential の qualityAssurance.body",
+        euMicrocredentialProfile,
+        (id: string): unknown => ({
+          ...validEuMicrocredential,
+          qualityAssurance: { description: { ja: "審査" }, body: { name: { ja: "認証機関" }, id } },
+        }),
+      ],
+      [
+        "completion-certificate の provider",
+        completionCertificateProfile,
+        (id: string): unknown => ({
+          ...validCompletionCertificate,
+          provider: { name: { ja: "サンプル大学" }, id },
+        }),
+      ],
+    ] as const;
+
+    const ids: [id: string, valid: boolean][] = [
+      ["https://example.ac.jp", true],
+      ["http://example.ac.jp/about", true],
+      ["did:example:ebfeb1f712ebc6f1c276e12ec21", true],
+      ["did:web:example.ac.jp", true],
+      ["urn:example:corporate-number:1234567890123", true],
+      ["javascript:alert(1)", false],
+      ["data:text/html,x", false],
+      ["ftp://example.org/x", false],
+      ["mailto:info@example.org", false],
+      ["HTTPS://example.org", false],
+      ["DID:example:x", false],
+      ["did:Example:x", false],
+      ["did:example:", false],
+      ["urn:", false],
+      ["urn:example", false],
+      ["https://", false],
+      [" https://example.org", false],
+      ["https://example.org\n", false],
+      ["https://example.org/a b", false],
+      ["did:example:<x>", false],
+      ["urn:example:a\\b", false],
+    ];
+
+    describe.each(withOrgId)("%s", (_, profile, withId) => {
+      const validateJson = new Ajv2020(ajvOptions).compile(toJsonSchema(profile));
+      it.each(ids)("%j", (id, valid) => {
+        const metadata = withId(id);
+        expect({
+          validateMetadata: validateMetadata(profile, metadata).success,
+          jsonSchema: validateJson(metadata),
+        }).toEqual({ validateMetadata: valid, jsonSchema: valid });
+      });
+    });
+  });
+
   it("テキストに言語が 1 つも無ければ、JSON Schema でも落とす", () => {
     const metadata = { ...validCompletionCertificate, programName: {} };
     expect(validateMetadata(completionCertificateProfile, metadata).success).toBe(false);

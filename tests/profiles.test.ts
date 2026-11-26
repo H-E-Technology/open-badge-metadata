@@ -2,6 +2,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import {
   HTTP_URL_PATTERN,
+  ORGANIZATION_ID_PATTERN,
   completionCertificateProfile,
   euMicrocredentialProfile,
   microCredentialProfile,
@@ -265,6 +266,36 @@ describe("completion-certificate", () => {
       period: { startDate: "2026-12-01", endDate: "2026-11-01" },
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("組織の識別子（Organization.id）", () => {
+  const withProviderId = (id: string): unknown => ({
+    ...validCompletionCertificate,
+    provider: { name: { ja: "サンプル大学" }, id },
+  });
+
+  it("値を書き換えずに返す", () => {
+    const result = validateMetadata(
+      completionCertificateProfile,
+      withProviderId("did:web:example.ac.jp"),
+    );
+    expect(result.success && result.data.provider.id).toBe("did:web:example.ac.jp");
+  });
+
+  it("使えないスキームの識別子を、id の位置で落とす", () => {
+    const result = validateMetadata(
+      completionCertificateProfile,
+      withProviderId("javascript:alert(1)"),
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.issues[0]?.path).toEqual(["provider", "id"]);
+  });
+
+  it("JSON Schema に、スキームを限る pattern を出す", () => {
+    const schema: any = toJsonSchema(completionCertificateProfile);
+    const provider = schema.properties.provider;
+    expect(provider.properties.id).toMatchObject({ pattern: ORGANIZATION_ID_PATTERN.source });
   });
 });
 
