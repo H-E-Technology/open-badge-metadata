@@ -103,6 +103,29 @@ const descriptorCases: [name: string, change: (d: Json) => void, valid: boolean]
   ["言語タグの書式に合わない", (d) => (d.languages = ["日本語"]), false],
   ["同じ言語を重ねる", (d) => (d.languages = ["ja", "ja"]), false],
   ["授業時間が総学習時間と同じ", (d) => (d.learnerEffort.contactHours = 90), true],
+  ["総学習時間が 0.25 の倍数の小数", (d) => (d.learnerEffort.totalHours = 90.75), true],
+  ["総学習時間が 0.25 の倍数でない", (d) => (d.learnerEffort.totalHours = 10.3), false],
+  ["総学習時間に丸めの誤差がある", (d) => (d.learnerEffort.totalHours = 0.1 + 10.2), false],
+  ["総学習時間が上限と同じ", (d) => (d.learnerEffort.totalHours = 100000), true],
+  ["総学習時間が上限を超える", (d) => (d.learnerEffort.totalHours = 100000.25), false],
+  ["総学習時間が指数表記になる大きさ", (d) => (d.learnerEffort.totalHours = 1e21), false],
+  ["授業時間が 0.25 の倍数でない", (d) => (d.learnerEffort.contactHours = 0.1), false],
+  ["授業時間が 0", (d) => (d.learnerEffort.contactHours = 0), true],
+  [
+    "認定の数が 0.25 の倍数の小数",
+    (d) => (d.recognitions = [{ kind: "credit", scheme: "UCTS", amount: 0.5 }]),
+    true,
+  ],
+  [
+    "認定の数が 0.25 の倍数でない",
+    (d) => (d.recognitions = [{ kind: "continuingEducation", scheme: "CEU", amount: 1.2 }]),
+    false,
+  ],
+  [
+    "認定の数が上限を超える",
+    (d) => (d.recognitions = [{ kind: "credit", scheme: "UCTS", amount: 100000.25 }]),
+    false,
+  ],
 ];
 
 /** validateMetadata() では落とし、JSON Schema では確かめない書き換え */

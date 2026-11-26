@@ -64,6 +64,31 @@ describe("microcredential（記述子の構造化データ）", () => {
     if (!result.success) expect(result.issues[0]?.path).toEqual(["learnerEffort", "totalHours"]);
   });
 
+  it("数値が 0.25 の倍数でない、または 100000 を超えるなら落とす", () => {
+    // 文章にすると "1e+21" や "10.299999999999999" になる値
+    for (const totalHours of [1e21, 0.1 + 10.2, 10.1, 100000.25]) {
+      const result = validate({ ...validDescriptors, learnerEffort: { totalHours } });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.issues[0]?.path).toEqual(["learnerEffort", "totalHours"]);
+    }
+    const amount = validate({
+      ...validDescriptors,
+      recognitions: [{ kind: "credit", scheme: "UCTS", amount: 0.1 }],
+    });
+    expect(amount.success).toBe(false);
+    if (!amount.success) expect(amount.issues[0]?.path).toEqual(["recognitions", 0, "amount"]);
+  });
+
+  it("0.25 の倍数の小数と、上限の 100000 は通す", () => {
+    expect(
+      validate({ ...validDescriptors, learnerEffort: { totalHours: 100000, contactHours: 0.75 } })
+        .success,
+    ).toBe(true);
+    expect(validate({ ...validDescriptors, learnerEffort: { totalHours: 10.25 } }).success).toBe(
+      true,
+    );
+  });
+
   it("決まりに無い項目名を落とす", () => {
     // totalHours の打ち間違い
     expect(validate({ ...validDescriptors, learnerEffort: { totalHour: 90 } }).success).toBe(false);

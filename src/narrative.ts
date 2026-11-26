@@ -123,7 +123,8 @@ const escapeLinkText = (text: string): string => text.replace(/[\\[\]]/g, "\\$&"
  *
  * 数値の言語ごとの文字列化（JavaScript の `String()`、Dart の `toString()` など）は
  * 結果が揃わないので、本文にはこの書き方で入れる。
- * 4 章の値の範囲では、値は 10 進で正確に表せるので、小数の丸めは起こらない。
+ * 検証を通る値（0.25 の倍数、100000 以下。4 章）は 10 進で正確に表せるので、
+ * どの言語でも丸めの誤差なしにこの書き方にできる。
  */
 export function formatNumber(n: number): string {
   if (!Number.isFinite(n)) throw new RangeError(`数値として書けない値です: ${n}`);

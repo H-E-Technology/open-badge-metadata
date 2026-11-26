@@ -42,12 +42,12 @@
 | 学修成果 | `learningOutcomes` | 必須 | 1 件以上の配列。要素は `description`（テキスト、必須）と `alignment`（スキル標準などへの対応、任意。OB 3.0 の `Alignment` と同じ形） |
 | 授業言語 | `languages` | 選択 | 言語タグの配列。例: `["ja"]` |
 | 授業の方法 | `participation` | 必須 | `mode`（必須。`onsite`、`online`、`hybrid` のどれか）、`timing`（任意。`synchronous`、`asynchronous`、`mixed` のどれか）、`description`（テキスト、任意） |
-| 学習量（総学習時間） | `learnerEffort` | 必須 | `totalHours`（必須。10 以上の数値）、`contactHours`（授業時間。任意の数値）、`description`（テキスト、任意） |
+| 学習量（総学習時間） | `learnerEffort` | 必須 | `totalHours`（必須。10 以上の数値）、`contactHours`（授業時間。任意の 0 以上の数値）、`description`（テキスト、任意） |
 | 評価の方法 | `assessments` | 必須 | 1 件以上の配列。要素は `method`（必須。語彙は仮の 9 種）と `description`（テキスト、任意） |
 | 質保証 | `qualityAssurance` | 必須 | `internal`（必須。内部質保証の基準の `name` と、任意の `url`）、`external`（任意の配列。第三者による評価・認証の `name` と、任意の `url`） |
 | レベル | `levels` | 選択 | 配列。要素は `framework`（枠組みの名前）、`value`（その枠組みでの値）、`url`（定義のある場所、任意） |
 | 証明書 | `certification` | 選択 | テキスト |
-| 単位／その他の認定 | `recognitions` | 必須 | 1 件以上の配列。要素は `kind`（必須。`credit`、`continuingEducation`、`other`、`none` のどれか）、`scheme`（単位やポイントの制度名、任意）、`amount`（数値、任意）、`description`（テキスト、任意） |
+| 単位／その他の認定 | `recognitions` | 必須 | 1 件以上の配列。要素は `kind`（必須。`credit`、`continuingEducation`、`other`、`none` のどれか）、`scheme`（単位やポイントの制度名、任意）、`amount`（0 より大きい数値、任意）、`description`（テキスト、任意） |
 | （受講）前提条件 | `prerequisites` | 選択 | 配列。要素は `description`（テキスト、必須）と `url`（任意） |
 | 積み上げ可能性 | `stackableInto` | 選択 | 配列。要素は積み上げ先の `name`（テキスト、必須）と `url`（任意） |
 
@@ -58,7 +58,8 @@
 - 選択の配列は、値が無ければ項目ごと省く。空の配列は使えない。
 - URL の項目（`alignment.targetUrl`、`qualityAssurance` の `url`、`levels[].url`、`prerequisites[].url`、`stackableInto[].url`）は、スキームが `http` か `https`（小文字）の URL に限る。`javascript:` や `data:` などは使えない。空白、制御文字、`<`、`>`、`\` も使えない。`criteria.narrative` は Markdown として表示されるので、押せるリンクになる URL を限り、6 章の `<URL>` の形で途中が切れないようにするためである。JSON Schema では `pattern` で同じ決まりを確かめる。
 - このルールの記述子ではないが、ほかのプロファイルの組織の識別子（`eu-microcredential` の `awardingBody[].id` と `qualityAssurance.body.id`、`completion-certificate` の `provider.id`）は、スキームが `http`、`https`、`did`、`urn`（小文字）のものに限る。`did:` は OB 3.0 の発行者で使われる DID（`did:<メソッド名>:…`、メソッド名は小文字の英数字）、`urn:` は法人番号などの URN（`urn:<名前空間>:…`）に使う。`javascript:` や `data:` などは使えず、空白、制御文字、`<`、`>`、`\` も使えない。値は書き換えずに確かめ、JSON Schema では `pattern` で同じ決まりを確かめる。
-- `learnerEffort.totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。上限（学位課程 1 年分）は時間数で決まっていないので、検証しない。
+- `learnerEffort.totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。フレームワークの上限（学位課程 1 年分）は時間数で決まっていないので、検証しない。
+- 数値の項目（`learnerEffort` の `totalHours` と `contactHours`、`recognitions[].amount`）は、0.25 の倍数（小数は `.25`、`.5`、`.75` だけ）で、100000 以下にする。100000 は、学位課程 4 年分（124 単位 × 45 時間 ≒ 5580 時間）より十分大きい、値の誤りを落とすための上限である。どちらも、6 章の文章で数値がどの言語でも同じ文字になるようにするための決まりである（指数表記や丸めの誤差が出ない）。0.1 の刻みにしないのは、0.1 が 2 進数で正確に表せず、JSON Schema の `multipleOf` の結果が検証ツールによって割れるためである。0.1 刻みのポイント（`1.2` CEU など）は `description` に書く。JSON Schema では `multipleOf` と `maximum` で同じ決まりを確かめる。
 - `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件だけ入れる。ほかの認定とは並べず、`scheme` と `amount` は書かない。
 - 言語タグは大文字小文字を区別しない（BCP 47）。テキストに、大文字小文字を無視して同じになるキー（`ja` と `JA` など）を並べてはいけない。同じ言語のどちらを表示するかが決まらないためである。
 - `languages` には、同じ言語を重ねて書かない。大文字小文字を無視して比べる（`["ja", "JA"]` も重複）。
@@ -149,7 +150,7 @@ URL とリンクの書き方:
 
 数値（`learnerEffort` の `totalHours` と `contactHours`、`recognitions[].amount`）の書き方:
 
-- 10 進で書く。指数表記（`1e+21` など）と桁区切り（`1,000` など）は使わない。
+- 10 進で書く。指数表記（`1e+21` など）と桁区切り（`1,000` など）は使わない。4 章の値の範囲（0.25 の倍数、100000 以下）では、値はどの言語でも誤差なく 10 進で書ける。
 - 小数部が 0 なら整数で書く。JSON で `90.0` や `9.0e1` と書かれた値も `90` と書く。
 - 小数部は、末尾の 0 を付けない。JSON で `10.50` と書かれた値は `10.5` と書く。
 - 数値を文字にする各言語の標準の書き方（JavaScript の `String()`、Dart の `toString()` など）は、結果が揃わない（Dart は `90.0` を `"90.0"` にする）。8 章の一致の検証のため、どの言語でもこの書き方で文字にする。

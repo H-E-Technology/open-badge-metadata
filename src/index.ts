@@ -24,6 +24,8 @@ export {
   DESCRIPTORS_TYPE,
   MicroCredentialDescriptors,
   ParticipationTiming,
+  QUANTITY_MAX,
+  QUANTITY_STEP,
   RecognitionKind,
   microCredentialProfile,
 } from "./profiles/microcredential.ts";
