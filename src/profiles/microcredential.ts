@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AssessmentMethod,
+  hasCaseInsensitiveDuplicate,
   HttpUrl,
   LanguageTag,
   LocalizedText,
@@ -87,8 +88,16 @@ export const MicroCredentialDescriptors = z.strictObject({
     )
     .min(1),
 
-  /** 授業言語（選択） */
-  languages: z.array(LanguageTag).min(1).optional(),
+  /** 授業言語（選択）。同じ言語（大文字小文字を無視して比べる）を重ねない */
+  languages: z
+    .array(LanguageTag)
+    .min(1)
+    .refine((tags) => !hasCaseInsensitiveDuplicate(tags), {
+      message: "同じ言語を重ねて書かないでください（大文字小文字は区別しません）",
+    })
+    // JSON Schema では、書かれたとおりに同じ値の重複だけを落とす
+    .meta({ uniqueItems: true })
+    .optional(),
 
   /** 授業の方法（必須） */
   participation: z.strictObject({
@@ -103,7 +112,12 @@ export const MicroCredentialDescriptors = z.strictObject({
     /** 授業時間 */
     contactHours: z.number().nonnegative().optional(),
     description: LocalizedText.optional(),
-  }),
+  })
+    // JSON Schema では確かめない（2 つの項目の値の比較は JSON Schema で書けない）
+    .refine((e) => e.contactHours === undefined || e.contactHours <= e.totalHours, {
+      message: "授業時間（contactHours）は総学習時間（totalHours）以下にしてください",
+      path: ["contactHours"],
+    }),
 
   /** 評価の方法（必須） */
   assessments: z

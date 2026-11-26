@@ -8,9 +8,20 @@ export const LanguageTag = z
   .regex(/^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/, "BCP 47 の言語タグで書いてください")
   .describe("BCP 47 の言語タグ");
 
-/** 多言語テキスト。キーは BCP 47 の言語タグ（"ja", "en" など）。最低 1 言語 */
+/** 大文字小文字を無視して同じになる値が 2 つ以上あるか。言語タグは大文字小文字を区別しない（BCP 47） */
+export const hasCaseInsensitiveDuplicate = (values: readonly string[]): boolean =>
+  new Set(values.map((v) => v.toLowerCase())).size !== values.length;
+
+/**
+ * 多言語テキスト。キーは BCP 47 の言語タグ（"ja", "en" など）。最低 1 言語。
+ * キーは書かれたとおりに扱い、大文字小文字を無視して同じになるキー（"ja" と "JA"）は並べられない。
+ */
 export const LocalizedText = z
   .record(LanguageTag, z.string().min(1))
+  // JSON Schema では確かめない（大文字小文字を無視した比較は JSON Schema で書けない）
+  .refine((v) => !hasCaseInsensitiveDuplicate(Object.keys(v)), {
+    message: "大文字小文字だけが違う言語タグを並べないでください",
+  })
   .refine((v) => Object.keys(v).length > 0, { message: "最低 1 言語は必要です" })
   // refine は JSON Schema に出ないので、同じ決まりを JSON Schema の書き方で足す
   .meta({ minProperties: 1 })

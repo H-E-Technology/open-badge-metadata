@@ -101,6 +101,18 @@ const descriptorCases: [name: string, change: (d: Json) => void, valid: boolean]
   ["総学習時間が 10 時間未満", (d) => (d.learnerEffort.totalHours = 5), false],
   ["決まりに無い項目名", (d) => (d.learnerEffort.totalHour = 90), false],
   ["言語タグの書式に合わない", (d) => (d.languages = ["日本語"]), false],
+  ["同じ言語を重ねる", (d) => (d.languages = ["ja", "ja"]), false],
+  ["授業時間が総学習時間と同じ", (d) => (d.learnerEffort.contactHours = 90), true],
+];
+
+/** validateMetadata() では落とし、JSON Schema では確かめない書き換え */
+const zodOnlyCases: [name: string, change: (d: Json) => void][] = [
+  ["大文字小文字だけが違う言語を重ねる", (d) => (d.languages = ["ja", "JA"])],
+  ["授業時間が総学習時間を超える", (d) => (d.learnerEffort.contactHours = 91)],
+  [
+    "テキストに大文字小文字だけが違う言語タグを並べる",
+    (d) => (d.certification = { ja: "認定", JA: "認定" }),
+  ],
 ];
 
 /** 構造化データを差し替えたバッジ。構造化データが正しければ、文章もそれに合わせて作り直す */
@@ -248,6 +260,15 @@ describe("構造化データ: validateMetadata() と dist/schemas/microcredentia
       validateMetadata: validateMetadata(microCredentialProfile, descriptors).success,
       jsonSchema: validateProfileSchema(descriptors),
     }).toEqual({ validateMetadata: valid, jsonSchema: valid });
+  });
+
+  it.each(zodOnlyCases)("JSON Schema では確かめない: %s", (_, change) => {
+    const descriptors = baseDescriptors();
+    change(descriptors);
+    expect({
+      validateMetadata: validateMetadata(microCredentialProfile, descriptors).success,
+      jsonSchema: validateProfileSchema(descriptors),
+    }).toEqual({ validateMetadata: false, jsonSchema: true });
   });
 
   it("必須の記述子だけのデータ", () => {

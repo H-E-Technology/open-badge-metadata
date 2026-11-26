@@ -35,7 +35,7 @@
 
 ## 4. 項目
 
-「テキスト」は、言語タグ（BCP 47）をキーにしたオブジェクトである。例: `{ "ja": "統計学の基礎知識", "en": "Basic statistics knowledge" }`
+「テキスト」は、言語タグ（BCP 47）をキーにしたオブジェクトである。例: `{ "ja": "統計学の基礎知識", "en": "Basic statistics knowledge" }`。キーは書かれたとおりに扱う（小文字に直さない）。
 
 | 記述子 | 項目名 | 区分 | 形 |
 | --- | --- | --- | --- |
@@ -59,6 +59,10 @@
 - URL の項目（`alignment.targetUrl`、`qualityAssurance` の `url`、`levels[].url`、`prerequisites[].url`、`stackableInto[].url`）は、スキームが `http` か `https`（小文字）の URL に限る。`javascript:` や `data:` などは使えない。空白、制御文字、`<`、`>`、`\` も使えない。`criteria.narrative` は Markdown として表示されるので、押せるリンクになる URL を限り、6 章の `<URL>` の形で途中が切れないようにするためである。JSON Schema では `pattern` で同じ決まりを確かめる。
 - `learnerEffort.totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。上限（学位課程 1 年分）は時間数で決まっていないので、検証しない。
 - `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件だけ入れる。ほかの認定とは並べず、`scheme` と `amount` は書かない。
+- 言語タグは大文字小文字を区別しない（BCP 47）。テキストに、大文字小文字を無視して同じになるキー（`ja` と `JA` など）を並べてはいけない。同じ言語のどちらを表示するかが決まらないためである。
+- `languages` には、同じ言語を重ねて書かない。大文字小文字を無視して比べる（`["ja", "JA"]` も重複）。
+- `learnerEffort.contactHours`（授業時間）は、`totalHours`（総学習時間）以下にする。
+- 上の 3 つのうち、このルールの JSON Schema で確かめるのは、`languages` に書かれたとおりに同じ値が重なること（`uniqueItems`）だけである。大文字小文字を無視した比較と、2 つの項目の値の比較は JSON Schema で書けないので、`validateMetadata()` と `validateBadge()` だけが確かめる。
 - フレームワークは、質保証の記述子に「本フレームワークに準拠していること」を書くよう求めている。これはガイドライン 3.0 どおり `achievement.alignment` にフレームワークの名前と URL を入れることで示し、ここには重ねて持たない。
 
 ### OB 3.0 本体の項目を使わない理由
@@ -99,6 +103,8 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 
 - `criteria.narrative` が、構造化データから作った文章と一致すること。TypeScript 以外で実装するときは、`test-vectors.json` で文章の生成を突き合わせる。
 - URL の書式。`format: "uri"` で示しているが、`format` を確かめるかどうかは検証ツールによる。
+- テキストのキーと `languages` の値を、大文字小文字を無視して比べた重複（4 章）。`languages` に書かれたとおりに同じ値が重なることは、`uniqueItems` で確かめる。
+- `learnerEffort.contactHours` が `totalHours` 以下であること（4 章）。
 
 公開するときの決まり:
 
@@ -242,7 +248,7 @@ URL とリンクの書き方:
 - ガイドライン 3.0 が必須とする OB 3.0 本体の項目（発行機関の名前、発行日、学習者を識別する情報、名称、内容）が入っている。
 - `@context` と `credentialSchema` が、5 章のとおりに入っている。
 
-このパッケージの `validateBadge()` が、上の 5 つを確かめる。`schema.json` は、このうち文章との一致のほかを確かめる（5 章）。署名と、OB 3.0 本体の項目の細かい形は確かめない。
+このパッケージの `validateBadge()` が、上の 5 つを確かめる。`schema.json` は、このうち文章との一致のほかを、JSON Schema で書けるかぎり確かめる（5 章）。署名と、OB 3.0 本体の項目の細かい形は確かめない。
 
 確かめてあること:
 
