@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RULE_BASE_URL } from "./rule.ts";
 
 /**
  * プロファイル: 「この種類のバッジには、このメタデータを入れる」という決まりごと。
@@ -45,6 +46,15 @@ export function validateMetadata<P extends ProfileDefinition>(
 }
 
 /**
+ * プロファイルの JSON Schema の URL（$id）。
+ * 格納ルールの公開先（RULE_BASE_URL）の下の schemas/<id>/<version>.json に置く。
+ * プロファイルの版ごとに別の URL になる。
+ */
+export function profileSchemaUrl(profile: Pick<ProfileDefinition, "id" | "version">): string {
+  return `${RULE_BASE_URL}/schemas/${profile.id}/${profile.version}.json`;
+}
+
+/**
  * プロファイルの JSON Schema（Draft 2020-12）。TypeScript 以外（Flutter など）から使う。
  *
  * zod の refine は JSON Schema に出ないので、プロファイルの側で、同じ決まりを .meta() に
@@ -52,7 +62,7 @@ export function validateMetadata<P extends ProfileDefinition>(
  */
 export function toJsonSchema(profile: ProfileDefinition): Record<string, unknown> {
   return {
-    $id: `https://github.com/H-E-Technology/open-badge-metadata/schemas/${profile.id}/${profile.version}.json`,
+    $id: profileSchemaUrl(profile),
     title: profile.title,
     description: profile.description,
     ...z.toJSONSchema(profile.schema, { target: "draft-2020-12" }),

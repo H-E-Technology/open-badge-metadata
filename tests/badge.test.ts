@@ -90,6 +90,27 @@ describe("validateBadge", () => {
     expect(failedPaths(swapped)).toEqual(["@context.0", "@context.1"]);
   });
 
+  it("@context の拡張用とこのルールのコンテキストは、3 番目以降なら順を問わない", () => {
+    const reversed = withChange((b) => {
+      const [vc = "", ob = "", ext = "", rule = "", ...rest] = b["@context"];
+      b["@context"] = [vc, ob, rule, ext, ...rest];
+    });
+    expect(failedPaths(reversed)).toEqual([]);
+
+    const separated = withChange((b) => {
+      const [vc = "", ob = "", ext = "", rule = "", ...rest] = b["@context"];
+      b["@context"] = [vc, ob, ext, "https://example.org/other-context.json", rule, ...rest];
+    });
+    expect(failedPaths(separated)).toEqual([]);
+  });
+
+  it("type に OpenBadgeCredential も AchievementCredential も無ければ、両方を挙げて落とす", () => {
+    const result = validateBadge(withChange((b) => (b.type = ["VerifiableCredential"])));
+    expect(result.success ? [] : result.issues.map((issue) => issue.message)).toEqual([
+      "type に VerifiableCredential と、OpenBadgeCredential（または AchievementCredential）を入れてください",
+    ]);
+  });
+
   it("credentialSchema にこのルールの JSON Schema が無ければ落とす", () => {
     const missing = withChange((b) => {
       b.credentialSchema = b.credentialSchema.filter((s) => s.id !== CREDENTIAL_SCHEMA_URL);

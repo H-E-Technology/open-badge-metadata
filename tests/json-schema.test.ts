@@ -163,6 +163,39 @@ const badgeCases: [name: string, change: (b: Json) => void, valid: boolean][] = 
     false,
   ],
   [
+    "@context の拡張用とこのルールのコンテキストの順が逆",
+    (b) => {
+      const [vc, ob, ext, rule, ...rest] = b["@context"];
+      expect([ext, rule]).toEqual([OB_EXTENSIONS_CONTEXT_URL, CONTEXT_URL]);
+      b["@context"] = [vc, ob, rule, ext, ...rest];
+    },
+    true,
+  ],
+  [
+    "@context の拡張用とこのルールのコンテキストの間に、ほかのコンテキストがある",
+    (b) => {
+      const [vc, ob, ext, rule, ...rest] = b["@context"];
+      b["@context"] = [vc, ob, ext, "https://example.org/other-context.json", rule, ...rest];
+    },
+    true,
+  ],
+  [
+    "@context の 2 番目の後に、ほかのコンテキストを置いてから拡張用とこのルールのコンテキストを置く",
+    (b) => {
+      const [vc, ob, ...rest] = b["@context"];
+      b["@context"] = [vc, ob, "https://example.org/other-context.json", ...rest];
+    },
+    true,
+  ],
+  [
+    "@context の 2 番目にこのルールのコンテキストを置く",
+    (b) => {
+      const [vc, ob, ...rest] = b["@context"];
+      b["@context"] = [vc, CONTEXT_URL, ob, ...rest.filter((c: string) => c !== CONTEXT_URL)];
+    },
+    false,
+  ],
+  [
     "@context の 2 番目が OB 3.0.x のほかの版",
     (b) => (b["@context"][1] = "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.2.json"),
     true,
