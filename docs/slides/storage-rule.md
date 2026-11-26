@@ -394,7 +394,7 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 | 学修成果 | `learningOutcomes` | 必須 | 1 件以上の配列。要素は `description`（テキスト、必須）と `alignment`（スキル標準などへの対応、任意） |
 | 授業言語 | `languages` | 選択 | 言語タグの配列。例は `["ja"]` |
 | 授業の方法 | `participation` | 必須 | `mode`（必須）は `onsite`、`online`、`hybrid`。`timing`（任意）は `synchronous`、`asynchronous`、`mixed` |
-| 学習量 | `learnerEffort` | 必須 | `totalHours` は必須で、10 以上の数値。`contactHours`（授業時間）は任意の数値 |
+| 学習量 | `learnerEffort` | 必須 | `totalHours` は必須で、10 以上の数値。`contactHours`（授業時間）は任意の 0 以上の数値 |
 | 評価の方法 | `assessments` | 必須 | 1 件以上の配列。要素は `method`（必須。語彙は仮の 9 種）と `description`（任意） |
 | 質保証 | `qualityAssurance` | 必須 | `internal`（必須。内部質保証）と `external`（任意の配列。第三者による認証）。どちらも `name` と任意の `url` を持つ |
 
@@ -412,7 +412,7 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 | --- | --- | --- | --- |
 | レベル | `levels` | 選択 | 配列。要素は `framework`（枠組みの名前）、`value`（その枠組みでの値）、`url`（任意） |
 | 証明書 | `certification` | 選択 | テキスト |
-| 単位／その他の認定 | `recognitions` | 必須 | 1 件以上の配列。`kind` は必須で、`credit`、`continuingEducation`、`other`、`none` のどれか。`scheme`（制度名）と `amount`（数値）は任意 |
+| 単位／その他の認定 | `recognitions` | 必須 | 1 件以上の配列。`kind` は必須で、`credit`、`continuingEducation`、`other`、`none` のどれか。`scheme`（制度名）と `amount`（0 より大きい数値）は任意 |
 | 前提条件 | `prerequisites` | 選択 | 配列。要素は `description`（テキスト、必須）と `url`（任意） |
 | 積み上げ可能性 | `stackableInto` | 選択 | 配列。要素は積み上げ先の `name`（テキスト、必須）と `url`（任意） |
 
@@ -422,8 +422,8 @@ th:nth-child(3), td:nth-child(3) { width:6%; white-space:nowrap; }
 
 - **テキストの持ち方**
   表の「テキスト」は、言語タグ（BCP 47）をキーにしたオブジェクトである。例は `{ "ja": "統計学の基礎知識", "en": "Basic statistics knowledge" }`
-- **学習量の下限**
-  `totalHours` の下限 10 は、フレームワーク 1.0 の条件（1 つのマイクロクレデンシャルの学習量は 10 時間以上）による。上限は時間数で決まっていないので、検証しない
+- **数値の範囲**
+  `totalHours` は 10 以上（フレームワーク 1.0 の条件）。時間数と `amount` は 0.25 の倍数で 100000 以下にし、文章の数値をどの言語でも同じ文字にする
 - **単位の出ない講座**
   `recognitions` はフレームワークで必須の記述子なので、単位もポイントも出ない講座は `kind: "none"` を 1 件入れる
 - **フレームワークへの準拠**
@@ -499,6 +499,7 @@ td:first-child code { white-space:nowrap; }
 - 見出しは「日本語名 (英語名):」とする
 - 配列は箇条書きにする
 - 値の無い選択記述子は、見出しごと省く
+- 数値は 10 進で書き、指数表記を使わない。小数の末尾の 0 は付けない（`90.0` は `90`）
 
 区分や数値を本文にするときの言い回しは、仮のものである
 

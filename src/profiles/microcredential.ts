@@ -58,6 +58,20 @@ const NamedReference = z.strictObject({
   url: HttpUrl.optional(),
 });
 
+/** 数値（時間数、単位やポイントの数）の刻み。小数は .25、.5、.75 だけ */
+export const QUANTITY_STEP = 0.25;
+
+/** 数値（時間数、単位やポイントの数）の上限 */
+export const QUANTITY_MAX = 100000;
+
+/**
+ * 時間数や、単位やポイントの数（docs/storage-rule.md の 4 章）。
+ * 0.25 は 2 進数で正確に表せるので、zod と JSON Schema の multipleOf の結果が揃う
+ * （0.1 の刻みは、0.3 などで検証ツールによって結果が割れる）。
+ * 刻みと上限があるので、文章に入れるとき指数表記や丸めの誤差が出ない（6 章）。
+ */
+const Quantity = z.number().multipleOf(QUANTITY_STEP).max(QUANTITY_MAX);
+
 /** JSON Schema で「kind が none の認定」を表す */
 const NONE_RECOGNITION = {
   type: "object",
@@ -108,9 +122,9 @@ export const MicroCredentialDescriptors = z.strictObject({
 
   /** 学習量（必須）。フレームワーク 1.0 の条件で、総学習時間は 10 時間以上 */
   learnerEffort: z.strictObject({
-    totalHours: z.number().min(10),
+    totalHours: Quantity.min(10),
     /** 授業時間 */
-    contactHours: z.number().nonnegative().optional(),
+    contactHours: Quantity.nonnegative().optional(),
     description: LocalizedText.optional(),
   })
     // JSON Schema では確かめない（2 つの項目の値の比較は JSON Schema で書けない）
@@ -159,7 +173,7 @@ export const MicroCredentialDescriptors = z.strictObject({
         kind: RecognitionKind,
         /** 単位やポイントの制度名。語彙は未決 */
         scheme: z.string().min(1).optional(),
-        amount: z.number().positive().optional(),
+        amount: Quantity.positive().optional(),
         description: LocalizedText.optional(),
       }),
     )

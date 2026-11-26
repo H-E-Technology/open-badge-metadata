@@ -9,6 +9,14 @@ import type { MicroCredentialDescriptors } from "./profiles/microcredential.ts";
  */
 export interface NarrativeTestVector {
   readonly name: string;
+  /**
+   * 構造化データを JSON で書いたテキスト（任意）。
+   * `90.0` のように、JSON の書き方が違っても同じ値になる数値を確かめるときに入れる。
+   * descriptors を JSON に書き出すと `90` になって書き方が残らないため、テキストのまま持つ。
+   * これがある例では、このテキストを JSON として読んだものから文章を作る。
+   * 読んだ結果は descriptors と同じ値になる。
+   */
+  readonly descriptorsJson?: string;
   readonly descriptors: MicroCredentialDescriptors;
   readonly narrative: string;
 }
@@ -225,9 +233,98 @@ const escaping: NarrativeTestVector = {
 - なし（None）`,
 };
 
+/** 小数と上限。小数は 0.25 の倍数、上限は 100000（docs/storage-rule.md の 4 章） */
+const numbers: NarrativeTestVector = {
+  name: "小数と上限の数値",
+  descriptors: {
+    type: ["MicroCredentialDescriptors"],
+    learningOutcomes: [{ description: { ja: "表形式のデータを集計できる" } }],
+    participation: { mode: "online", timing: "asynchronous" },
+    learnerEffort: { totalHours: 100000, contactHours: 0.75 },
+    assessments: [{ method: "exam" }],
+    qualityAssurance: { internal: { name: { ja: "教務委員会による審査" } } },
+    recognitions: [
+      { kind: "credit", scheme: "UCTS", amount: 0.5 },
+      { kind: "continuingEducation", scheme: "PDU", amount: 22.25 },
+      { kind: "other", scheme: "サンプル認定", amount: 100000 },
+    ],
+  },
+  narrative: `学修成果 (Learning Outcomes):
+- 表形式のデータを集計できる
+
+授業の方法 (Form of participation):
+オンライン、非同期（Online, asynchronous）
+
+学習量（総学習時間） (Learner effort):
+100000 時間、うち授業時間 0.75 時間（100000 hours, including 0.75 contact hours）
+
+評価の方法 (Type of assessment):
+- 試験（Exam）
+
+質保証 (Type of quality assurance):
+- 内部質保証（Internal）: 教務委員会による審査
+
+単位/その他認定 (Credit/Other recognition):
+- 単位（Credit）: UCTS 0.5
+- 継続教育ポイント（Continuing education）: PDU 22.25
+- その他の認定（Other recognition）: サンプル認定 100000`,
+};
+
+/**
+ * JSON での数値の書き方が違っても、同じ値なら同じ文章になる。
+ * `90.0` は `90`、`10.50` は `10.5`、`1.5e1` は `15` と書く（docs/storage-rule.md の 6 章）。
+ */
+const jsonNumbers: NarrativeTestVector = {
+  name: "JSON での数値の書き方",
+  descriptorsJson: `{
+  "type": ["MicroCredentialDescriptors"],
+  "learningOutcomes": [{ "description": { "ja": "表形式のデータを集計できる" } }],
+  "participation": { "mode": "onsite" },
+  "learnerEffort": { "totalHours": 90.0, "contactHours": 10.50 },
+  "assessments": [{ "method": "exam" }],
+  "qualityAssurance": { "internal": { "name": { "ja": "教務委員会による審査" } } },
+  "recognitions": [
+    { "kind": "credit", "scheme": "UCTS", "amount": 2.0 },
+    { "kind": "continuingEducation", "scheme": "PDU", "amount": 1.5e1 }
+  ]
+}`,
+  descriptors: {
+    type: ["MicroCredentialDescriptors"],
+    learningOutcomes: [{ description: { ja: "表形式のデータを集計できる" } }],
+    participation: { mode: "onsite" },
+    learnerEffort: { totalHours: 90, contactHours: 10.5 },
+    assessments: [{ method: "exam" }],
+    qualityAssurance: { internal: { name: { ja: "教務委員会による審査" } } },
+    recognitions: [
+      { kind: "credit", scheme: "UCTS", amount: 2 },
+      { kind: "continuingEducation", scheme: "PDU", amount: 15 },
+    ],
+  },
+  narrative: `学修成果 (Learning Outcomes):
+- 表形式のデータを集計できる
+
+授業の方法 (Form of participation):
+対面（Onsite）
+
+学習量（総学習時間） (Learner effort):
+90 時間、うち授業時間 10.5 時間（90 hours, including 10.5 contact hours）
+
+評価の方法 (Type of assessment):
+- 試験（Exam）
+
+質保証 (Type of quality assurance):
+- 内部質保証（Internal）: 教務委員会による審査
+
+単位/その他認定 (Credit/Other recognition):
+- 単位（Credit）: UCTS 2
+- 継続教育ポイント（Continuing education）: PDU 15`,
+};
+
 export const narrativeTestVectors: readonly NarrativeTestVector[] = [
   example,
   minimal,
   full,
   escaping,
+  numbers,
+  jsonNumbers,
 ];
