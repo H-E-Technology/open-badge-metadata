@@ -283,6 +283,24 @@ describe("テキストの値を本文に入れる", () => {
   });
 });
 
+describe("授業言語", () => {
+  const languagesLine = (languages: string[]): string => {
+    const narrative = toCriteriaNarrative({ ...minimalDescriptors, languages });
+    const lines = narrative.split("\n");
+    return lines[lines.indexOf(`${NARRATIVE_HEADINGS.languages}:`) + 1] ?? "";
+  };
+
+  it("言語の名前は、言語タグの言語の部分で引く", () => {
+    expect(languagesLine(["ja-JP", "EN-us", "zh-Hant-TW", "KO"])).toBe(
+      "日本語（Japanese）、英語（English）、中国語（Chinese）、韓国語（Korean）",
+    );
+  });
+
+  it("言語の部分が表に無い言語タグは、タグのまま書く", () => {
+    expect(languagesLine(["fr-CA", "jav"])).toBe("fr-CA、jav");
+  });
+});
+
 describe("formatNumber", () => {
   it.each([
     [90, "90"],
@@ -317,6 +335,26 @@ describe("renderText", () => {
   it("日本語、英語の順に並べ、2 つ目以降を括弧に入れる", () => {
     expect(renderText({ en: "Basic statistics knowledge", ja: "統計学の基礎知識" })).toBe(
       "統計学の基礎知識（Basic statistics knowledge）",
+    );
+  });
+
+  it("地域や文字の付いた言語タグも、言語の部分で日本語・英語と判定する", () => {
+    expect(renderText({ "ja-JP": "統計", en: "Statistics" })).toBe("統計（Statistics）");
+    expect(renderText({ "EN-us": "Statistics", "zh-Hant": "統計學", "JA-jp": "統計" })).toBe(
+      "統計（Statistics / 統計學）",
+    );
+  });
+
+  it("同じ順位の中は、言語タグの文字コードの順に並べる", () => {
+    expect(renderText({ "en-US": "US", "en-GB": "UK", en: "EN", ja: "日本語" })).toBe(
+      "日本語（EN / UK / US）",
+    );
+    expect(renderText({ "fr-CA": "CA", de: "DE", fr: "FR" })).toBe("DE（FR / CA）");
+  });
+
+  it("言語の部分が ja や en で始まるだけの言語タグは、日本語・英語にしない", () => {
+    expect(renderText({ jav: "Jawa", enm: "Middle English", ja: "日本語" })).toBe(
+      "日本語（Middle English / Jawa）",
     );
   });
 

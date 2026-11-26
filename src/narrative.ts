@@ -68,7 +68,10 @@ const RECOGNITION_LABEL: Record<RecognitionKind, Label> = {
   none: ["なし", "None"],
 };
 
-/** 言語名。ここに無い言語タグは、タグのまま書く */
+/**
+ * 言語名。キーは言語タグの言語の部分（primaryLanguage()）。
+ * 言語の部分がここに無い言語タグは、タグのまま書く。
+ */
 const LANGUAGE_LABEL: Record<string, Label> = {
   ja: ["日本語", "Japanese"],
   en: ["英語", "English"],
@@ -78,11 +81,17 @@ const LANGUAGE_LABEL: Record<string, Label> = {
 
 const both = ([ja, en]: Label): string => `${ja}（${en}）`;
 
-/** 日本語、英語、ほかの言語（タグの順）に並べたときの順位 */
+/**
+ * 言語タグの言語の部分（最初の `-` の前）を小文字にしたもの。
+ * 例: "ja-JP" → "ja"、"EN-us" → "en"、"zh-Hant-TW" → "zh"
+ */
+const primaryLanguage = (tag: string): string => (tag.split("-")[0] ?? "").toLowerCase();
+
+/** 日本語、英語、ほかの言語の順に並べたときの順位。言語の部分で判定する */
 function languageRank(tag: string): number {
-  const lower = tag.toLowerCase();
-  if (lower === "ja") return 0;
-  if (lower === "en") return 1;
+  const language = primaryLanguage(tag);
+  if (language === "ja") return 0;
+  if (language === "en") return 1;
   return 2;
 }
 
@@ -103,7 +112,9 @@ export const escapeMarkdown = (text: string): string =>
 
 /**
  * 多言語テキストを 1 つの文字列にする。
- * 日本語、英語、ほかの言語（タグの順）に並べ、2 つ目以降を括弧に入れる。
+ * 日本語、英語、ほかの言語の順に並べ、2 つ目以降を括弧に入れる。
+ * 日本語か英語かは言語タグの言語の部分で判定する（"ja-JP" は日本語）。
+ * 同じ順位の中は、言語タグの文字コードの順（大文字小文字を区別する）に並べる。
  * それぞれの値は escapeMarkdown() でエスケープする。
  * 例: { ja: "統計学の基礎知識", en: "Basic statistics knowledge" }
  *     → "統計学の基礎知識（Basic statistics knowledge）"
@@ -209,7 +220,7 @@ export function toCriteriaNarrative(d: MicroCredentialDescriptors): string {
         : [
             d.languages
               .map((tag) => {
-                const label = LANGUAGE_LABEL[tag.toLowerCase()];
+                const label = LANGUAGE_LABEL[primaryLanguage(tag)];
                 return label === undefined ? tag : both(label);
               })
               .join("、"),

@@ -243,6 +243,60 @@ const escaping: NarrativeTestVector = {
 - なし（None）`,
 };
 
+/**
+ * 地域や文字の付いた言語タグ。日本語か英語かは、言語の部分（最初の `-` の前、大文字小文字を無視）で
+ * 判定する。同じ順位の中は言語タグの文字コードの順。授業言語の名前も言語の部分で引く
+ * （docs/storage-rule.md の 6 章）。
+ */
+const regionalTags: NarrativeTestVector = {
+  name: "地域付きの言語タグ",
+  descriptors: {
+    type: ["MicroCredentialDescriptors"],
+    learningOutcomes: [
+      { description: { "en-US": "Apply statistical methods", "ja-JP": "統計手法を適用する" } },
+      {
+        description: {
+          "fr-CA": "Agréger des données",
+          "en-US": "Aggregate data (US)",
+          "en-GB": "Aggregate data (UK)",
+          ja: "データを集計する",
+        },
+      },
+    ],
+    languages: ["ja-JP", "en-US", "zh-Hant", "fr-CA"],
+    participation: { mode: "online" },
+    learnerEffort: { totalHours: 10 },
+    assessments: [{ method: "exam" }],
+    qualityAssurance: { internal: { name: { "JA-jp": "教務委員会による審査" } } },
+    certification: { fr: "Certificat numérique", "EN-gb": "Digital certificate" },
+    recognitions: [{ kind: "none" }],
+  },
+  narrative: `学修成果 (Learning Outcomes):
+- 統計手法を適用する（Apply statistical methods）
+- データを集計する（Aggregate data \\(UK\\) / Aggregate data \\(US\\) / Agréger des données）
+
+授業言語 (Language):
+日本語（Japanese）、英語（English）、中国語（Chinese）、fr-CA
+
+授業の方法 (Form of participation):
+オンライン（Online）
+
+学習量（総学習時間） (Learner effort):
+10 時間（10 hours）
+
+評価の方法 (Type of assessment):
+- 試験（Exam）
+
+質保証 (Type of quality assurance):
+- 内部質保証（Internal）: 教務委員会による審査
+
+証明書 (Certification):
+Digital certificate（Certificat numérique）
+
+単位/その他認定 (Credit/Other recognition):
+- なし（None）`,
+};
+
 /** 小数と上限。小数は 0.25 の倍数、上限は 100000（docs/storage-rule.md の 4 章） */
 const numbers: NarrativeTestVector = {
   name: "小数と上限の数値",
@@ -335,6 +389,7 @@ export const narrativeTestVectors: readonly NarrativeTestVector[] = [
   minimal,
   full,
   escaping,
+  regionalTags,
   numbers,
   jsonNumbers,
 ];
