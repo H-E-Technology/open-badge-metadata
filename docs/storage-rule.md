@@ -90,10 +90,15 @@ OB 3.0 の仕様（付録 C.1）に従い、発行する側は次を入れる。
 | ファイル | 役割 |
 | --- | --- |
 | `context.json` | JSON-LD コンテキスト。足す項目名は `microCredentialDescriptors` の 1 つだけで、その中の項目名は、この項目の中だけで効く定義にしている |
-| `schema.json` | バッジ全体に当てる JSON Schema（Draft 2019-09）。構造化データの形と、`achievementType` などを確かめる |
+| `schema.json` | バッジ全体に当てる JSON Schema（Draft 2019-09）。8 章で確かめることを、JSON Schema で書けるかぎり確かめる |
 | `test-vectors.json` | 構造化データと、そこから作られる文章の組。TypeScript 以外で文章の生成を実装するときに、結果を突き合わせる |
 
 ビルドすると `dist/rule/microcredential/v1/` にできる。公開先の URL と同じ並びにしている。
+
+`schema.json` は、同じバッジに `validateBadge()` と同じ結果を返す。ただし、次の決まりは JSON Schema では確かめない。
+
+- `criteria.narrative` が、構造化データから作った文章と一致すること。TypeScript 以外で実装するときは、`test-vectors.json` で文章の生成を突き合わせる。
+- URL の書式。`format: "uri"` で示しているが、`format` を確かめるかどうかは検証ツールによる。
 
 公開するときの決まり:
 
@@ -237,7 +242,7 @@ URL とリンクの書き方:
 - ガイドライン 3.0 が必須とする OB 3.0 本体の項目（発行機関の名前、発行日、学習者を識別する情報、名称、内容）が入っている。
 - `@context` と `credentialSchema` が、5 章のとおりに入っている。
 
-このパッケージの `validateBadge()` が、上の 5 つを確かめる。署名と、OB 3.0 本体の項目の細かい形は確かめない。
+このパッケージの `validateBadge()` が、上の 5 つを確かめる。`schema.json` は、このうち文章との一致のほかを確かめる（5 章）。署名と、OB 3.0 本体の項目の細かい形は確かめない。
 
 確かめてあること:
 
