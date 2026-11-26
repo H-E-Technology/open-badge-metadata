@@ -1,0 +1,11 @@
+# 依存（npm の項目と pnpm のロックファイル）と、ワークフローの Actions の更新を知らせる
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
